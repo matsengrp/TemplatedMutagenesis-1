@@ -1,6 +1,8 @@
 import regex as re
+from Bio.Seq import Seq
 
-def get_match_lengths(reference, query, seed_start, seed_len):
+
+def get_match_properties(reference, query, seed_start, seed_len, rc=False):
     """Finds matches between a seed and a reference sequence, extends the
     seed in both directions, and returns the length of the extended
     match.
@@ -10,12 +12,16 @@ def get_match_lengths(reference, query, seed_start, seed_len):
     query -- the query sequence
     seed_start -- the position of the seed in the query sequence
     seed_len -- the length of the seed
+    rc -- should the matching be on the reverse complement?
 
     """
+    if rc:
+        query = query[::-1]
+        reference = str(Seq(reference).complement())
+        seed_start = len(query) - seed_start - seed_len
     matches = [m.start() for m in re.finditer(query[seed_start:(seed_start + seed_len)], reference, overlapped=True)]
-    lr_match_lengths = [extend_one_match(reference, query, seed_start, seed_len, m) for m in matches]
-    total_lengths = [l + r + seed_len for (l, r) in lr_match_lengths]
-    return total_lengths
+    match_properties = [extend_one_match(reference, query, seed_start, seed_len, m) for m in matches]
+    return match_properties
 
 
 def extend_one_match(reference, query, seed_start, seed_len, match_idx):
@@ -54,4 +60,4 @@ def extend_one_match(reference, query, seed_start, seed_len, match_idx):
             right += 1
         else:
             break
-    return (left, right)
+    return (match_idx - left, left + right + seed_len, left, right)
