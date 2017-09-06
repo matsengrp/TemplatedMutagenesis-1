@@ -8,11 +8,12 @@ from write_query_fq import write_query
 from merge_bowtie import merge_bowtie
 
 seed_length = 4
-reference = "test_data/lambda_virus.fa"
-query_prefix = "test_data/seed_test_query"
-output_prefix = "test_data/seed_test_output"
+seed_start = 0
+reference = "../test_data/lambda_virus.fa"
+query_prefix = "../test_data/seed_test_query"
+output_prefix = "../test_data/seed_test_output"
 query_sequence = "ACGCTGGCCATGC"
-write_query([query_sequence], ["r1"], [4], [4], query_prefix)
+write_query([query_sequence], ["r1"], [seed_start], [seed_length], query_prefix)
 # call the script that runs bowtie
 subprocess.call(["./bowtie_exact_match.sh",
                  reference, query_prefix, str(seed_length), output_prefix],
@@ -33,9 +34,9 @@ lengths_bt_rc = [len(rc_merged_dict[k]) for k in rc_merged_dict.keys()]
 # get the match lengths from the simple function
 ref_seq = SeqIO.read(reference, "fasta")
 properties_fw = get_match_properties(str(ref_seq.seq), query=query_sequence,
-                                     seed_start=4, seed_len=seed_length)
+                                     seed_start=seed_start, seed_len=seed_length)
 properties_rc = get_match_properties(str(ref_seq.seq), query=query_sequence,
-                                     seed_start=4, seed_len=seed_length, rc=True)
+                                     seed_start=seed_start, seed_len=seed_length, rc=True)
 lengths_fw = [l for (i, l, left, right) in properties_fw]
 lengths_rc = [l for (i, l, left, right) in properties_rc]
 
