@@ -1,5 +1,4 @@
 import pysam
-from Bio import SeqIO
 
 
 def starts_with_match(cigartuples, seed_length, left):
@@ -33,13 +32,4 @@ def merge_bowtie(samfile_right, samfile_left, seed_length):
                 right_seq = right_dict[(ref_name, index, name)]
                 merged_seq = read.get_reference_sequence() + right_seq[seed_length:]
                 merged_dict[(ref_name, read.get_reference_positions()[0], name)] = merged_seq
-            else:
-                # this shouldn't happen
-                #print("Error: couldn't find a match for left read of query %s at position %i" %
-                #      (ref_name, read.get_reference_positions()[0], name))
-                #print("read sequence was:")
-                #print(read.get_reference_sequence())
-                #print("cigar string was:")
-                #print(read.cigartuples)
-                1+1
     return(merged_dict)
