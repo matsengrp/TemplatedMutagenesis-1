@@ -3,104 +3,151 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from motif_finder import motif_finder
 from motif_finder import longest_motif_finder
-
-class testMF(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_edge(self):
-        # set up test data
-        r1 = SeqRecord(Seq("GCC"), name="good_1")
-        r2 = SeqRecord(Seq("CCC"), name="good_2")
-        r3 = SeqRecord(Seq("CCG"), name="no_good_1")
-        r4 = SeqRecord(Seq("ATG"), name="no_good_2")
-        query = "ATGCCCCG"
-        mut_map = {query: [4]}
-        ref = [r1, r2, r3, r4]
-        # run motif finder with window size 3
-        mf_out = motif_finder(mut_map, ref, 3)
-        # there should be two entries in the output, one for each mutation
-        self.assertEqual(len(mf_out), 1)
-        # the mutation at position 4 matches to good_1 and good_2
-        self.assertEqual(mf_out[(query, 4)], set(["good_1", "good_2"]))
-
-    def test_window_longer_than_query(self):
-        # set up test data
-        r1 = SeqRecord(Seq("CCCC"), name="r1")
-        query = "ATGCCCC"
-        mut_map = {query: [0, 4]}
-        ref = [r1]
-        # run motif finder with a window size of 10, longer than the
-        # length of the query
-        mf_out = motif_finder(mut_map, ref, 10)
-        # we should have two entries, one for each mutation
-        self.assertEqual(len(mf_out), 2)
-        # both of the mutations should map to an empty set
-        self.assertEqual(mf_out[(query, 0)], set())
-        self.assertEqual(mf_out[(query, 4)], set())
-
-    def test_multiple_queries(self):
-        # set up test data
-        r1 = SeqRecord(Seq("ATGCCCC"), name="r1")
-        q1 = "CCCGGGGGG"
-        q2 = "GGGGGGCCA"
-        mut_map = {q1: [1, 4], q2: [5]}
-        ref = [r1]
-        # run motif finder
-        mf_out = motif_finder(mut_map, ref, 3)
-        self.assertEqual(len(mf_out), 3)
-        self.assertEqual(mf_out[(q1, 1)], set(["r1"]))
-        self.assertEqual(mf_out[(q1, 4)], set())
-        self.assertEqual(mf_out[(q2, 5)], set(["r1"]))
+from motif_finder import seed_starts
+from motif_finder import poly_motif_finder
 
 
-class testLMF(unittest.TestCase):
+class testMotifFinder(unittest.TestCase):
 
     def setUp(self):
         pass
 
-    def test_1(self):
-        # set up the test data
-        match = "ATGCCCC"
-        query = "GGGGG" + match + "GGGGG"
-        # r1 is the sequence that has a match to the query
-        r1 = SeqRecord(Seq("AAAAAAAA" + match + "AAAAAAAA"),
+    def test_single(self):
+        # set up test data
+        match = "CCC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA"),
                        name="r1")
-        # r2 is a decoy sequence
-        r2 = SeqRecord(Seq("AAAAAAAAAAAAAAAAAAAA"),
-                       name="r2")
-        # we want to find a match to the query around position 7
-        mut_idx = 7
+        mut_idx = 4
         mut_map = {query: [mut_idx]}
-        ref = [r1, r2]
+        ref = [r1]
+        seed_len = 3
+        # run motif_finder
+        mf_out = motif_finder(mut_map, ref, seed_len)
+        # there should be one match to r1
+        self.assertEqual(mf_out[0].num_hits(), 1)
+        self.assertEqual(mf_out[0].ref_idx, [6])
+        self.assertEqual(len(mf_out), 1)
+
+    def test_double(self):
+        # set up test data
+        match = "CCC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA" + match),
+                       name="r1")
+        mut_idx = 4
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        seed_len = 3
+        # run motif_finder
+        mf_out = motif_finder(mut_map, ref, seed_len)
+        # there should be two matches to r1, at indices 6 and 14
+        self.assertEqual(len(mf_out), 1)
+        self.assertEqual(mf_out[0].num_hits(), 2)
+        self.assertEqual(mf_out[0].ref_idx, [6, 14])
+
+
+class testPolyMotifFinder(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_single(self):
+        match = "CGC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA"),
+                       name="r1")
+        mut_idx = (3, 4)
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        seed_len = 3
+        # run motif_finder
+        pmf_out = poly_motif_finder(mut_map, ref, seed_len)
+        # there should be one match to r1, at indices 5 and 6
+        self.assertEqual(pmf_out[0].num_hits(), 1)
+        self.assertEqual(pmf_out[0].ref_idx, [(5, 6)])
+        self.assertEqual(len(pmf_out), 1)
+
+    def test_double(self):
+        match = "CCC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("A" * 5 + match + "A" * 5 + match),
+                       name="r1")
+        mut_idx = (3, 5)
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        seed_len = 3
+        pmf_out = poly_motif_finder(mut_map, ref, seed_len)
+        self.assertEqual(len(pmf_out), 1)
+        self.assertEqual(pmf_out[0].num_hits(), 2)
+        self.assertEqual(pmf_out[0].ref_idx, [(5, 7), (13, 15)])
+
+
+class testLongestMotifFinder(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_single(self):
+        # set up the test data
+        match = "ATGCA"
+        query = "G" * 5 + match + "G" * 5
+        r1 = SeqRecord(Seq("A" * 10 + match + "A" * 10),
+                       name="r1")
+        mut_idx = 5
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
         seed_len = 3
         # run longest_motif_finder
         lmf_out = longest_motif_finder(mut_map, ref, seed_len)
-        # the query centered at 7 matches to 1 position in the
-        # reference
-        self.assertEqual(len(lmf_out[(query, mut_idx)]), 1)
-        # the match should start at position 8 and go for the
-        # entire length of 'match'
-        self.assertEqual(lmf_out[(query, mut_idx)],
-                         set([("r1", str(r1.seq), 8, len(match))]))
+        self.assertEqual(len(lmf_out), 1)
+        self.assertEqual(lmf_out[0].ref_name, ["r1"])
+        self.assertEqual(lmf_out[0].ref_idx, [10])
+        self.assertEqual(lmf_out[0].match_extent, [len(match)])
 
-    def test_overlapping(self):
-        # set up the test data
-        match = "A" * 10
-        query = "G" * 10 + match + "G" * 10
-        r1 = SeqRecord(Seq("C" * 10 + match + "C" * 10),
+    def test_double(self):
+        match = "ATGCA"
+        query = "G" * 5 + match + "G" * 5
+        r1 = SeqRecord(Seq("A" * 10 + match + "A" * 10 + match),
                        name="r1")
-        mut_idx = 15
+        mut_idx = 5
         mut_map = {query: [mut_idx]}
         ref = [r1]
-        seed_len = 4
+        seed_len = 3
         # run longest_motif_finder
         lmf_out = longest_motif_finder(mut_map, ref, seed_len)
-        # there should be a match to r1, starting at position 10, of
-        # length len(match)
-        self.assertEqual(("r1", str(r1.seq), 10, len(match)) in
-                         lmf_out[(query, mut_idx)], True)
+        self.assertEqual(len(lmf_out), 1)
+        self.assertEqual(lmf_out[0].num_hits(), 2)
+        self.assertEqual(lmf_out[0].ref_idx, [10, 25])
+        self.assertEqual(lmf_out[0].match_extent, [len(match), len(match)])
+
+
+class testSeedStarts(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_single_mutation(self):
+        # mutation at 1, window size 3, sequence length 10 has windows
+        # starting at 0 and 1 around the mutation
+        self.assertEqual(seed_starts(1, 1, 3, 10), (0, 1))
+        # mutation at 5, window size 3, sequence of length 10 has
+        # windows starting at 3, 4, 5 around the mutation
+        self.assertEqual(seed_starts(5, 5, 3, 10), (3, 5))
+        # mutation at 9, window size 3, sequence of length 10 has one
+        # window starting at 7 around the mutation
+        self.assertEqual(seed_starts(9, 9, 3, 10), (7, 7))
+
+    def test_double_mutation(self):
+        # mutations at 0 and 3, window size 4, sequence length 10 has
+        # a window starting at 0 containing the two mutations
+        self.assertEqual(seed_starts(0, 3, 4, 10), (0, 0))
+        # mutations at 4 and 5, window size 4, sequence length 10 has
+        # windows starting at 2, 3, and 4 containing the mutation
+        self.assertEqual(seed_starts(4, 5, 4, 10), (2, 4))
+        # mutations at 8 and 9, window size 4, sequence length 10 has
+        # one window starting at 6 containing the mutations
+        self.assertEqual(seed_starts(8, 9, 4, 10), (6, 6))
 
 
 if __name__ == '__main__':
