@@ -1,6 +1,7 @@
 from string_compare import extend_one_match
 import regex as re
 
+
 # For each (read, mutation) pair, looks at windows of seed_len around
 # the mutation and finds all the reference sequences that match.
 def motif_finder(mutations, references, seed_len):
@@ -12,33 +13,91 @@ def motif_finder(mutations, references, seed_len):
     references -- A list of reference sequences to match.
     seed_len -- The length of the matched string.
 
-    Returns: A dictionary keyed by (query, index) tuples with a set of
-    reference hits as the values.
+    Returns: A list of Match objects describing the hits.
 
     """
-    match_dict = {}
+    match_list = []
     for q in mutations.keys():
         seq_len = len(q)
         for mut_idx in mutations[q]:
-            # farthest left starting point for a window of length
-            # seed_len containing mut_idx
-            min_start = max(0, mut_idx - seed_len + 1)
-            # farthest right starting point for a window of length
-            # seed_len containing mut_idx
-            max_start = min(seq_len - seed_len, mut_idx)
-            # a set to store the hits in
-            reference_hits = set()
+            (min_start, max_start) = seed_starts(mut_idx,
+                                                 mut_idx,
+                                                 seed_len,
+                                                 seq_len)
+            match_object = Match(q, mut_idx)
             for start in range(min_start, max_start + 1):
                 # create the seed
                 seed = q[start:(start + seed_len)]
+                mut_offset = mut_idx - start
                 for r in references:
-                    if seed in r:
-                        reference_hits.add(r.name)
-            match_dict[(q, mut_idx)] = reference_hits
-    return match_dict
+                    match_indices = [m.start() for m in re.finditer(seed, str(r.seq), overlapped=True)]
+                    for match_idx in match_indices:
+                        match_object.add_hit(r.seq,
+                                             r.name,
+                                             match_idx + mut_offset,
+                                             seed_len)
+            match_list.append(match_object)
+    return match_list
+
+
+def poly_motif_finder(mutations, references, seed_len):
+    """Finds matches around pairs of mutations
+
+    Keyword arguments:
+    mutations -- A dictionary with query sequences as keys and a list
+    of pairs of mutation indices as values.
+    references -- A list of the reference sequences to match.
+    seed_len -- The length of the matched string.
+
+    Returns: A list of Match objects describing the hits.
+
+    """
+    match_list = []
+    for q in mutations.keys():
+        seq_len = len(q)
+        for (idx_lo, idx_hi) in mutations[q]:
+            (min_start, max_start) = seed_starts(idx_lo,
+                                                 idx_hi,
+                                                 seed_len,
+                                                 seq_len)
+            match_object = Match(q, (idx_lo, idx_hi))
+            for start in range(min_start, max_start + 1):
+                # create the seed
+                seed = q[start:(start + seed_len)]
+                offset_lo = idx_lo - start
+                offset_hi = idx_hi - start
+                for r in references:
+                    match_indices = [m.start() for m in re.finditer(seed, str(r.seq), overlapped=True)]
+                    for match_idx in match_indices:
+                        match_object.add_hit(r.seq,
+                                             r.name,
+                                             (offset_lo + match_idx,
+                                              offset_hi + match_idx),
+                                             seed_len)
+            match_list.append(match_object)
+    return match_list
+
+
+def seed_starts(idx_lo, idx_hi, seed_len, seq_len):
+    """Finds starting positions for windows around mutations
+
+    Keyword arguments:
+    idx_lo -- The lowest index of a mutation in the window
+    idx_hi -- The highest index of a mutation in the window.
+    seed_len -- The length of the window.
+    seq_len -- The length of the sequence thu mutations occur in.
+
+    Returns: A pair with the lowest and highest indices the window can
+    start at.
+
+    """
+    min_start = max(0, idx_hi - seed_len + 1)
+    max_start = min(seq_len - seed_len, idx_lo)
+    return((min_start, max_start))
 
 
 def longest_motif_finder(mutations, references, seed_len):
+
     """For each mutation, finds the longest matches in the references around
     that mutation that match at least min_length bases.
 
@@ -48,23 +107,16 @@ def longest_motif_finder(mutations, references, seed_len):
     references -- A list of the reference sequences to match.
     seed_len -- The length of the matched string
 
-    Returns: A dictionary keyed by (query, index) tuples with a set of
-    hits, in the form (ref_name, ref_seq, hit_index, hit_length)
+    Returns: A list of Match objects describing the hits.
 
     """
 
-    match_dict = {}
+    match_list = []
     for q in mutations.keys():
         seq_len = len(q)
         for mut_idx in mutations[q]:
-            # farthest left starting point for a window of length
-            # seed_len containing mut_idx
-            min_start = max(0, mut_idx - seed_len + 1)
-            # farthest right starting point for a window of length
-            # seed_len containing mut_idx
-            max_start = min(seq_len - seed_len, mut_idx)
-            # a set to store the hits in
-            reference_hits = set()
+            match_object = Match(q, mut_idx)
+            (min_start, max_start) = seed_starts(mut_idx, mut_idx, seed_len, seq_len)
             # get the hits for each window around the mutation
             for r in references:
                 for start in range(min_start, max_start + 1):
@@ -72,11 +124,45 @@ def longest_motif_finder(mutations, references, seed_len):
                     seed = q[start:(start + seed_len)]
                     # find all the places the seed matches the reference
                     matches = [m.start() for m in re.finditer(seed, str(r.seq), overlapped=True)]
-                    # extend each of the matches that we found
-                    match_properties = [extend_one_match(r.seq, q, start, seed_len, m) for m in matches]
-                    for (match_idx, match_len, left_ext, right_ext) in match_properties:
-                        # store the reference name, its sequence, the
-                        # starting index of the match, and the length
-                        reference_hits.add((r.name, str(r.seq), match_idx, match_len))
-            match_dict[(q, mut_idx)] = reference_hits
-    return match_dict
+                    for m in matches:
+                        match_extended = extend_one_match(r.seq,
+                                                          q,
+                                                          start,
+                                                          seed_len,
+                                                          m)
+                        # mut_idx - start + m is the index of the
+                        # mutation in the reference sequence, and
+                        # match_extended[1] is the length of the
+                        # extended match
+                        match_object.add_hit(r.seq,
+                                             r.name,
+                                             mut_idx - start + m,
+                                             match_extended[1])
+            match_list.append(match_object)
+    return match_list
+
+
+class Match(object):
+
+    def __init__(self, query_seq, mut_idx):
+        """Return a new Match object"""
+        # the sequence of the query
+        self.query = query_seq
+        # this can be either a single number or a tuple
+        self.mut_idx = mut_idx
+        self.ref_seq = []
+        self.ref_name = []
+        self.ref_idx = []
+        self.match_extent = []
+
+    def add_hit(self, ref_seq, ref_name, ref_idx, match_extent):
+        self.ref_seq.append(ref_seq)
+        self.ref_name.append(ref_name)
+        self.ref_idx.append(ref_idx)
+        self.match_extent.append(match_extent)
+
+    def num_hits(self):
+        return len(self.ref_name)
+
+    def hit_exists(self):
+        return len(self.ref_name) > 0
