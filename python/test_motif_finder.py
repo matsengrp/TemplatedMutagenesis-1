@@ -5,6 +5,7 @@ from motif_finder import motif_finder
 from motif_finder import longest_motif_finder
 from motif_finder import seed_starts
 from motif_finder import poly_motif_finder
+from motif_finder import make_kmer_dictionary
 
 
 class testMotifFinder(unittest.TestCase):
@@ -148,6 +149,39 @@ class testSeedStarts(unittest.TestCase):
         # mutations at 8 and 9, window size 4, sequence length 10 has
         # one window starting at 6 containing the mutations
         self.assertEqual(seed_starts(8, 9, 4, 10), (6, 6))
+
+
+class testKmerDict(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_single_ref(self):
+        r1 = SeqRecord(Seq("ATA"), name="r1")
+        d1 = make_kmer_dictionary([r1], 2)
+        d2 = make_kmer_dictionary([r1], 3)
+        d3 = make_kmer_dictionary([r1], 4)
+        self.assertEqual(len(d1.keys()), 2)
+        self.assertEqual("AT" in d1.keys(), True)
+        self.assertEqual("TA" in d1.keys(), True)
+        self.assertEqual(d1["AT"], set(["r1"]))
+        self.assertEqual(d1["TA"], set(["r1"]))
+        self.assertEqual(len(d2.keys()), 1)
+        self.assertEqual("ATA" in d2.keys(), True)
+        self.assertEqual(d2["ATA"], set(["r1"]))
+        self.assertEqual(len(d3.keys()), 0)
+
+    def test_multiple_refs(self):
+        r1 = SeqRecord("ATA", name="r1")
+        r2 = SeqRecord("CTA", name="r2")
+        d1 = make_kmer_dictionary([r1, r2], 3)
+        d2 = make_kmer_dictionary([r1, r2], 2)
+        self.assertEqual(len(d1.keys()), 2)
+        self.assertEqual(d1["ATA"], set(["r1"]))
+        self.assertEqual(d1["CTA"], set(["r2"]))
+        self.assertEqual(len(d2.keys()), 3)
+        self.assertEqual(d2["AT"], set(["r1"]))
+        self.assertEqual(d2["TA"], set(["r1", "r2"]))
+        self.assertEqual(d2["CT"], set(["r2"]))
 
 
 if __name__ == '__main__':

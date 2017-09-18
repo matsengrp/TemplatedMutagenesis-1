@@ -166,3 +166,26 @@ class Match(object):
 
     def hit_exists(self):
         return len(self.ref_name) > 0
+
+
+def make_kmer_dictionary(references, k):
+    """Make a dictionary mapping kmers to sequences they appear in
+
+    Keyword arguments:
+    references -- A list of SeqRecord objects (have names and sequences)
+    k -- The size of the k-mer
+
+    Returns: A dictionary keyed by k-mers, mapping to sets of
+    reference names.
+
+    """
+    d = {}
+    for ref in references:
+        seq = str(ref.seq)
+        for start in range(0, len(seq) - k + 1):
+            kmer = seq[start:(start + k)]
+            if kmer in d.keys():
+                d[kmer].add(ref.name)
+            else:
+                d[kmer] = set([ref.name])
+    return d
