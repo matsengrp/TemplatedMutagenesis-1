@@ -7,6 +7,7 @@ from motif_finder import seed_starts
 from motif_finder import poly_motif_finder
 from motif_finder import make_kmer_dictionary
 from motif_finder import indexed_motif_finder
+import pandas as pd
 
 
 class testMotifFinder(unittest.TestCase):
@@ -69,6 +70,27 @@ class testIndexedMotifFinder(unittest.TestCase):
         self.assertEqual(mf_out["reference_name"][0], "r1")
         self.assertEqual(mf_out["query_sequence"][0], query)
         self.assertEqual(mf_out["query_mutation_index"][0], mut_idx)
+
+    def test_double(self):
+        match = "CCC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA" + match),
+                       name="r1")
+        mut_idx = 4
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        mf_out = indexed_motif_finder(mut_map, kmer_dict, k)
+        self.assertEqual(mf_out.shape[0], 2)
+        self.assertEqual(
+            mf_out["query_sequence"].equals(pd.Series([query, query])), True)
+        self.assertEqual(
+            mf_out["query_mutation_index"].equals(pd.Series([mut_idx, mut_idx])), True)
+        self.assertEqual(
+            mf_out["reference_name"].equals(pd.Series(["r1", "r1"])), True)
+        self.assertEqual(
+            mf_out["reference_alignment"].equals(pd.Series([6, 14])), True)
 
 
 class testPolyMotifFinder(unittest.TestCase):
@@ -186,11 +208,11 @@ class testKmerDict(unittest.TestCase):
         self.assertEqual(len(d1.keys()), 2)
         self.assertEqual("AT" in d1.keys(), True)
         self.assertEqual("TA" in d1.keys(), True)
-        self.assertEqual(d1["AT"], set(["r1"]))
-        self.assertEqual(d1["TA"], set(["r1"]))
+        self.assertEqual(d1["AT"], set([(r1, 0)]))
+        self.assertEqual(d1["TA"], set([(r1, 1)]))
         self.assertEqual(len(d2.keys()), 1)
         self.assertEqual("ATA" in d2.keys(), True)
-        self.assertEqual(d2["ATA"], set(["r1"]))
+        self.assertEqual(d2["ATA"], set([(r1, 0)]))
         self.assertEqual(len(d3.keys()), 0)
 
     def test_multiple_refs(self):
@@ -199,12 +221,12 @@ class testKmerDict(unittest.TestCase):
         d1 = make_kmer_dictionary([r1, r2], 3)
         d2 = make_kmer_dictionary([r1, r2], 2)
         self.assertEqual(len(d1.keys()), 2)
-        self.assertEqual(d1["ATA"], set(["r1"]))
-        self.assertEqual(d1["CTA"], set(["r2"]))
+        self.assertEqual(d1["ATA"], set([(r1, 0)]))
+        self.assertEqual(d1["CTA"], set([(r2, 0)]))
         self.assertEqual(len(d2.keys()), 3)
-        self.assertEqual(d2["AT"], set(["r1"]))
-        self.assertEqual(d2["TA"], set(["r1", "r2"]))
-        self.assertEqual(d2["CT"], set(["r2"]))
+        self.assertEqual(d2["AT"], set([(r1, 0)]))
+        self.assertEqual(d2["TA"], set([(r1, 1), (r2, 1)]))
+        self.assertEqual(d2["CT"], set([(r2, 0)]))
 
 
 if __name__ == '__main__':

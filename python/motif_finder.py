@@ -183,9 +183,9 @@ def make_kmer_dictionary(references, k):
         for start in range(0, len(seq) - k + 1):
             kmer = seq[start:(start + k)]
             if kmer in d.keys():
-                d[kmer].add(ref.name)
+                d[kmer].add((ref, start))
             else:
-                d[kmer] = set([ref.name])
+                d[kmer] = set([(ref, start)])
     return d
 
 
@@ -213,10 +213,12 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                 # create the seed
                 seed = q[start:(start + k)]
                 if seed in kmer_dict:
-                    for ref in kmer_dict[seed]:
+                    for (ref, ref_idx) in kmer_dict[seed]:
                         row_list.append({
                             "query_sequence": q,
                             "query_mutation_index": mut_idx,
-                            "reference_name": ref
+                            "reference_name": ref.name,
+                            "reference_sequence": ref.seq,
+                            "reference_alignment": ref_idx + mut_idx - start
                         })
     return pd.DataFrame(row_list)
