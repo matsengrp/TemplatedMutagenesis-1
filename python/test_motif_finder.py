@@ -1,9 +1,7 @@
 import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-from motif_finder import seed_starts
-from motif_finder import make_kmer_dictionary
-from motif_finder import indexed_motif_finder
+from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches
 import pandas as pd
 
 
@@ -95,6 +93,22 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(
             pmf_out["reference_alignment"].equals(pd.Series([5, 13])),
             True)
+
+    def test_extend_matches(self):
+        match = "ATGCA"
+        query = "G" * 5 + match + "G" * 5
+        r1 = SeqRecord(Seq("A" * 10 + match + "A" * 10),
+                       name="r1")
+        mut_idx = 5
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        mf_out = indexed_motif_finder(mut_map, kmer_dict, k)
+        mf_extended = extend_matches(mf_out)
+        # we should get one match of length 5
+        self.assertEqual(mf_extended.shape[0], 1)
+        self.assertEqual(mf_extended.loc[0, "match_extent"], 5)
 
 
 class testSeedStarts(unittest.TestCase):
