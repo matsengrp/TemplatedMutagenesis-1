@@ -1,56 +1,13 @@
 import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-from motif_finder import motif_finder
-from motif_finder import longest_motif_finder
 from motif_finder import seed_starts
-from motif_finder import poly_motif_finder
 from motif_finder import make_kmer_dictionary
 from motif_finder import indexed_motif_finder
 import pandas as pd
 
 
 class testMotifFinder(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_single(self):
-        # set up test data
-        match = "CCC"
-        query = "GGG" + match + "GGG"
-        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA"),
-                       name="r1")
-        mut_idx = 4
-        mut_map = {query: [mut_idx]}
-        ref = [r1]
-        seed_len = 3
-        # run motif_finder
-        mf_out = motif_finder(mut_map, ref, seed_len)
-        # there should be one match to r1
-        self.assertEqual(mf_out[0].num_hits(), 1)
-        self.assertEqual(mf_out[0].ref_idx, [6])
-        self.assertEqual(len(mf_out), 1)
-
-    def test_double(self):
-        # set up test data
-        match = "CCC"
-        query = "GGG" + match + "GGG"
-        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA" + match),
-                       name="r1")
-        mut_idx = 4
-        mut_map = {query: [mut_idx]}
-        ref = [r1]
-        seed_len = 3
-        # run motif_finder
-        mf_out = motif_finder(mut_map, ref, seed_len)
-        # there should be two matches to r1, at indices 6 and 14
-        self.assertEqual(len(mf_out), 1)
-        self.assertEqual(mf_out[0].num_hits(), 2)
-        self.assertEqual(mf_out[0].ref_idx, [6, 14])
-
-
-class testIndexedMotifFinder(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -92,13 +49,7 @@ class testIndexedMotifFinder(unittest.TestCase):
         self.assertEqual(
             mf_out["reference_alignment"].equals(pd.Series([6, 14])), True)
 
-
-class testPolyMotifFinder(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_single(self):
+    def test_poly_single(self):
         match = "CGC"
         query = "GGG" + match + "GGG"
         r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA"),
@@ -106,15 +57,18 @@ class testPolyMotifFinder(unittest.TestCase):
         mut_idx = (3, 4)
         mut_map = {query: [mut_idx]}
         ref = [r1]
-        seed_len = 3
-        # run motif_finder
-        pmf_out = poly_motif_finder(mut_map, ref, seed_len)
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        pmf_out = indexed_motif_finder(mut_map, kmer_dict, k)
         # there should be one match to r1, at indices 5 and 6
-        self.assertEqual(pmf_out[0].num_hits(), 1)
-        self.assertEqual(pmf_out[0].ref_idx, [(5, 6)])
-        self.assertEqual(len(pmf_out), 1)
+        self.assertEqual(pmf_out.shape[0], 1)
+        self.assertEqual(pmf_out["query_sequence"][0], query)
+        self.assertEqual(pmf_out["query_mutation_index"][0], mut_idx)
+        self.assertEqual(pmf_out["reference_name"][0], "r1")
+        self.assertEqual(pmf_out["reference_sequence"][0], r1.seq)
+        self.assertEqual(pmf_out["reference_alignment"][0], 5)
 
-    def test_double(self):
+    def test_poly_double(self):
         match = "CCC"
         query = "GGG" + match + "GGG"
         r1 = SeqRecord(Seq("A" * 5 + match + "A" * 5 + match),
@@ -122,50 +76,25 @@ class testPolyMotifFinder(unittest.TestCase):
         mut_idx = (3, 5)
         mut_map = {query: [mut_idx]}
         ref = [r1]
-        seed_len = 3
-        pmf_out = poly_motif_finder(mut_map, ref, seed_len)
-        self.assertEqual(len(pmf_out), 1)
-        self.assertEqual(pmf_out[0].num_hits(), 2)
-        self.assertEqual(pmf_out[0].ref_idx, [(5, 7), (13, 15)])
-
-
-class testLongestMotifFinder(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def test_single(self):
-        # set up the test data
-        match = "ATGCA"
-        query = "G" * 5 + match + "G" * 5
-        r1 = SeqRecord(Seq("A" * 10 + match + "A" * 10),
-                       name="r1")
-        mut_idx = 5
-        mut_map = {query: [mut_idx]}
-        ref = [r1]
-        seed_len = 3
-        # run longest_motif_finder
-        lmf_out = longest_motif_finder(mut_map, ref, seed_len)
-        self.assertEqual(len(lmf_out), 1)
-        self.assertEqual(lmf_out[0].ref_name, ["r1"])
-        self.assertEqual(lmf_out[0].ref_idx, [10])
-        self.assertEqual(lmf_out[0].match_extent, [len(match)])
-
-    def test_double(self):
-        match = "ATGCA"
-        query = "G" * 5 + match + "G" * 5
-        r1 = SeqRecord(Seq("A" * 10 + match + "A" * 10 + match),
-                       name="r1")
-        mut_idx = 5
-        mut_map = {query: [mut_idx]}
-        ref = [r1]
-        seed_len = 3
-        # run longest_motif_finder
-        lmf_out = longest_motif_finder(mut_map, ref, seed_len)
-        self.assertEqual(len(lmf_out), 1)
-        self.assertEqual(lmf_out[0].num_hits(), 2)
-        self.assertEqual(lmf_out[0].ref_idx, [10, 25])
-        self.assertEqual(lmf_out[0].match_extent, [len(match), len(match)])
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        pmf_out = indexed_motif_finder(mut_map, kmer_dict, k)
+        self.assertEqual(pmf_out.shape[0], 2)
+        self.assertEqual(
+            pmf_out["query_sequence"].equals(pd.Series([query, query])),
+            True)
+        self.assertEqual(
+            pmf_out["query_mutation_index"].equals(pd.Series([mut_idx, mut_idx])),
+            True)
+        self.assertEqual(
+            pmf_out["reference_name"].equals(pd.Series(["r1", "r1"])),
+            True)
+        self.assertEqual(
+            pmf_out["reference_sequence"].equals(pd.Series([r1.seq, r1.seq])),
+            True)
+        self.assertEqual(
+            pmf_out["reference_alignment"].equals(pd.Series([5, 13])),
+            True)
 
 
 class testSeedStarts(unittest.TestCase):
