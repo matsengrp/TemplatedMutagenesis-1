@@ -6,6 +6,7 @@ from motif_finder import longest_motif_finder
 from motif_finder import seed_starts
 from motif_finder import poly_motif_finder
 from motif_finder import make_kmer_dictionary
+from motif_finder import indexed_motif_finder
 
 
 class testMotifFinder(unittest.TestCase):
@@ -46,6 +47,28 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(len(mf_out), 1)
         self.assertEqual(mf_out[0].num_hits(), 2)
         self.assertEqual(mf_out[0].ref_idx, [6, 14])
+
+
+class testIndexedMotifFinder(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_single(self):
+        match = "CCC"
+        query = "GGG" + match + "GGG"
+        r1 = SeqRecord(Seq("AAAAA" + match + "AAAAA"),
+                       name="r1")
+        mut_idx = 4
+        mut_map = {query: [mut_idx]}
+        ref = [r1]
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        mf_out = indexed_motif_finder(mut_map, kmer_dict, k)
+        self.assertEqual(mf_out.shape[0], 1)
+        self.assertEqual(mf_out["reference_name"][0], "r1")
+        self.assertEqual(mf_out["query_sequence"][0], query)
+        self.assertEqual(mf_out["query_mutation_index"][0], mut_idx)
 
 
 class testPolyMotifFinder(unittest.TestCase):

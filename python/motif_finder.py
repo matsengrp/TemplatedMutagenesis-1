@@ -1,20 +1,18 @@
 from string_compare import extend_one_match
 import regex as re
+import pandas as pd
 
 
 # For each (read, mutation) pair, looks at windows of seed_len around
 # the mutation and finds all the reference sequences that match.
 def motif_finder(mutations, references, seed_len):
     """Find matches around a set of mutations.
-
     Keyword arguments:
     mutations -- A dictionary with query sequences as keys and a list
     of mutation indices as values.
     references -- A list of reference sequences to match.
     seed_len -- The length of the matched string.
-
     Returns: A list of Match objects describing the hits.
-
     """
     match_list = []
     for q in mutations.keys():
@@ -189,3 +187,36 @@ def make_kmer_dictionary(references, k):
             else:
                 d[kmer] = set([ref.name])
     return d
+
+
+def indexed_motif_finder(mutations, kmer_dict, k):
+    """Find matches around a set of mutations.
+
+    Keyword arguments:
+    mutations -- A dictionary with query sequences as keys and a list
+    of mutation indices as values.
+    kmer_dict -- A dictionary indexed by k-mers giving the sequences they
+    appear in.
+
+    Returns: A pandas DataFrame.
+
+    """
+    row_list = []
+    for q in mutations.keys():
+        seq_len = len(q)
+        for mut_idx in mutations[q]:
+            (min_start, max_start) = seed_starts(mut_idx,
+                                                 mut_idx,
+                                                 k,
+                                                 seq_len)
+            for start in range(min_start, max_start + 1):
+                # create the seed
+                seed = q[start:(start + k)]
+                if seed in kmer_dict:
+                    for ref in kmer_dict[seed]:
+                        row_list.append({
+                            "query_sequence": q,
+                            "query_mutation_index": mut_idx,
+                            "reference_name": ref
+                        })
+    return pd.DataFrame(row_list)
