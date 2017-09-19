@@ -1,6 +1,7 @@
 from string_compare import extend_one_match
 import regex as re
 import pandas as pd
+import numpy as np
 
 
 # For each (read, mutation) pair, looks at windows of seed_len around
@@ -19,7 +20,6 @@ def motif_finder(mutations, references, seed_len):
         seq_len = len(q)
         for mut_idx in mutations[q]:
             (min_start, max_start) = seed_starts(mut_idx,
-                                                 mut_idx,
                                                  seed_len,
                                                  seq_len)
             match_object = Match(q, mut_idx)
@@ -54,8 +54,8 @@ def poly_motif_finder(mutations, references, seed_len):
     for q in mutations.keys():
         seq_len = len(q)
         for (idx_lo, idx_hi) in mutations[q]:
-            (min_start, max_start) = seed_starts(idx_lo,
-                                                 idx_hi,
+            (min_start, max_start) = seed_starts([idx_lo,
+                                                 idx_hi],
                                                  seed_len,
                                                  seq_len)
             match_object = Match(q, (idx_lo, idx_hi))
@@ -76,7 +76,7 @@ def poly_motif_finder(mutations, references, seed_len):
     return match_list
 
 
-def seed_starts(idx_lo, idx_hi, seed_len, seq_len):
+def seed_starts(idx, seed_len, seq_len):
     """Finds starting positions for windows around mutations
 
     Keyword arguments:
@@ -89,6 +89,8 @@ def seed_starts(idx_lo, idx_hi, seed_len, seq_len):
     start at.
 
     """
+    idx_hi = np.max(idx)
+    idx_lo = np.min(idx)
     min_start = max(0, idx_hi - seed_len + 1)
     max_start = min(seq_len - seed_len, idx_lo)
     return((min_start, max_start))
@@ -114,7 +116,7 @@ def longest_motif_finder(mutations, references, seed_len):
         seq_len = len(q)
         for mut_idx in mutations[q]:
             match_object = Match(q, mut_idx)
-            (min_start, max_start) = seed_starts(mut_idx, mut_idx, seed_len, seq_len)
+            (min_start, max_start) = seed_starts(mut_idx, seed_len, seq_len)
             # get the hits for each window around the mutation
             for r in references:
                 for start in range(min_start, max_start + 1):
@@ -206,7 +208,6 @@ def indexed_motif_finder(mutations, kmer_dict, k):
         seq_len = len(q)
         for mut_idx in mutations[q]:
             (min_start, max_start) = seed_starts(mut_idx,
-                                                 mut_idx,
                                                  k,
                                                  seq_len)
             for start in range(min_start, max_start + 1):

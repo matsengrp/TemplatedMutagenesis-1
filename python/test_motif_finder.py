@@ -176,24 +176,24 @@ class testSeedStarts(unittest.TestCase):
     def test_single_mutation(self):
         # mutation at 1, window size 3, sequence length 10 has windows
         # starting at 0 and 1 around the mutation
-        self.assertEqual(seed_starts(1, 1, 3, 10), (0, 1))
+        self.assertEqual(seed_starts(1, 3, 10), (0, 1))
         # mutation at 5, window size 3, sequence of length 10 has
         # windows starting at 3, 4, 5 around the mutation
-        self.assertEqual(seed_starts(5, 5, 3, 10), (3, 5))
+        self.assertEqual(seed_starts(5, 3, 10), (3, 5))
         # mutation at 9, window size 3, sequence of length 10 has one
         # window starting at 7 around the mutation
-        self.assertEqual(seed_starts(9, 9, 3, 10), (7, 7))
+        self.assertEqual(seed_starts(9, 3, 10), (7, 7))
 
     def test_double_mutation(self):
         # mutations at 0 and 3, window size 4, sequence length 10 has
         # a window starting at 0 containing the two mutations
-        self.assertEqual(seed_starts(0, 3, 4, 10), (0, 0))
+        self.assertEqual(seed_starts((0, 3), 4, 10), (0, 0))
         # mutations at 4 and 5, window size 4, sequence length 10 has
         # windows starting at 2, 3, and 4 containing the mutation
-        self.assertEqual(seed_starts(4, 5, 4, 10), (2, 4))
+        self.assertEqual(seed_starts((4, 5), 4, 10), (2, 4))
         # mutations at 8 and 9, window size 4, sequence length 10 has
         # one window starting at 6 containing the mutations
-        self.assertEqual(seed_starts(8, 9, 4, 10), (6, 6))
+        self.assertEqual(seed_starts((8, 9), 4, 10), (6, 6))
 
 
 class testKmerDict(unittest.TestCase):
