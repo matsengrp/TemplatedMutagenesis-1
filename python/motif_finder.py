@@ -196,11 +196,18 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
     Keyword arguments:
     mutations -- A dictionary with query sequences as keys and a list
-    of mutation indices as values.
+    of mutation indices as values. The list can contain tuples describing
+    sets of mutations.
     kmer_dict -- A dictionary indexed by k-mers giving the sequences they
     appear in.
 
-    Returns: A pandas DataFrame.
+    Returns: A pandas DataFrame containing the query sequence, the
+    indices of the mutation(s) in the query, the name and sequence of
+    the reference with a match, and a reference alignment. This is the
+    position in the reference that matches the mutation in the query
+    (if we are loking at single mutations) or the position in the
+    reference matching the left-most mutation in a set of mutations in
+    the query.
 
     """
     row_list = []
@@ -213,6 +220,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
             for start in range(min_start, max_start + 1):
                 # create the seed
                 seed = q[start:(start + k)]
+                mut_offset = np.min(mut_idx) - start
                 if seed in kmer_dict:
                     for (ref, ref_idx) in kmer_dict[seed]:
                         row_list.append({
@@ -220,6 +228,6 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                             "query_mutation_index": mut_idx,
                             "reference_name": ref.name,
                             "reference_sequence": ref.seq,
-                            "reference_alignment": ref_idx + mut_idx - start
+                            "reference_alignment": ref_idx + mut_offset
                         })
     return pd.DataFrame(row_list)
