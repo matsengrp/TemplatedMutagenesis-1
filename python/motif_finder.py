@@ -81,16 +81,18 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                             "query_sequence": q,
                             "query_mutation_index": mut_idx,
                             "reference_name": ref.name,
-                            "reference_sequence": ref.seq,
+                            "reference_sequence": str(ref.seq),
                             "reference_alignment": ref_idx + mut_offset
                         })
-    return pd.DataFrame(row_list)
+    return pd.DataFrame(row_list).drop_duplicates().reset_index(drop=True)
 
 
 def extend_matches(df):
     """Extends matches from indexed_motif_finder."""
 
     df["match_extent"] = pd.Series([0] * df.shape[0], index=df.index)
+    df["query_left_idx"] = pd.Series([0] * df.shape[0], index=df.index)
+    df["query_right_idx"] = pd.Series([0] * df.shape[0], index=df.index)
     for row in range(0, df.shape[0]):
         left = 0
         right = 0
@@ -117,4 +119,6 @@ def extend_matches(df):
             else:
                 break
         df.loc[row, "match_extent"] = left + right + 1
+        df.loc[row, "query_left_idx"] = query_idx - left
+        df.loc[row, "query_right_idx"] = query_idx + right
     return df
