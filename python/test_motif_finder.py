@@ -105,10 +105,10 @@ class testMotifFinder(unittest.TestCase):
         k = 3
         kmer_dict = make_kmer_dictionary(ref, k)
         mf_out = indexed_motif_finder(mut_map, kmer_dict, k)
-        mf_extended = extend_matches(mf_out)
+        extend_matches(mf_out)
         # we should get one match of length 5
-        self.assertEqual(mf_extended.shape[0], 1)
-        self.assertEqual(mf_extended.loc[0, "match_extent"], 5)
+        self.assertEqual(mf_out.shape[0], 1)
+        self.assertEqual(mf_out.loc[0, "match_extent"], 5)
 
     def test_hit_fraction(self):
         mut_map = {
