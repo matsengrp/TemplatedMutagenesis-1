@@ -1,7 +1,7 @@
 import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches
+from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction
 import pandas as pd
 
 
@@ -109,6 +109,18 @@ class testMotifFinder(unittest.TestCase):
         # we should get one match of length 5
         self.assertEqual(mf_extended.shape[0], 1)
         self.assertEqual(mf_extended.loc[0, "match_extent"], 5)
+
+    def test_hit_fraction(self):
+        mut_map = {
+            "AAA": [1],
+            "GGG": [1]
+        }
+        ref = [SeqRecord("AAAA", name="r1")]
+        k = 3
+        kmer_dict = make_kmer_dictionary(ref, k)
+        mf_out = indexed_motif_finder(mut_map, kmer_dict, k)
+        p = hit_fraction(mf_out)
+        self.assertEqual(.5, p)
 
 
 class testSeedStarts(unittest.TestCase):

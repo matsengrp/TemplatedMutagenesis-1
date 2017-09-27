@@ -133,3 +133,16 @@ def extend_matches(df):
         df.loc[row, "match_extent"] = left + right + 1
         df.loc[row, "query_left_idx"] = query_idx - left
         df.loc[row, "query_right_idx"] = query_idx + right
+
+
+def hit_fraction(df):
+    hit_dict = {}
+    for row in df.index:
+        query = df.loc[row, "query_sequence"]
+        mut_idx = df.loc[row, "query_mutation_index"]
+        if df.loc[row, "reference_name"] == "":
+            hit_dict[(query, mut_idx)] = 0
+        else:
+            hit_dict[(query, mut_idx)] = 1
+    hits = np.mean([hit_dict[k] for k in hit_dict.keys()])
+    return hits
