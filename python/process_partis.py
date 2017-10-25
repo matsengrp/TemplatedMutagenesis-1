@@ -1,4 +1,6 @@
 import pandas as pd
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 
 # this should eventually include insertions as well as mutations, for
@@ -18,6 +20,7 @@ def process_partis(partis_file):
             mutated_seq = indel_reversed_seq
         mutation_idx = [i for i in range(len(mutated_seq)) if
                         mutated_seq[i] != naive_seq[i]]
+        mutated_seq = SeqRecord(Seq(mutated_seq), id=annotations["unique_ids"][row])
         mutation_map[mutated_seq] = mutation_idx
     return(mutation_map)
 
@@ -73,5 +76,6 @@ def unseen_mutations(partis_file):
                     continue
                 unseen_seq = list(mutated_seq)
                 unseen_seq[i] = b
-                mutation_map["".join(unseen_seq)] = [i]
+                unseen_seq = SeqRecord(Seq("".join(unseen_seq)), id=annotations["unique_ids"][row])
+                mutation_map[unseen_seq] = [i]
     return(mutation_map)

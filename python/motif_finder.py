@@ -65,9 +65,11 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
     """
     row_list = []
-    for q in mutations.keys():
+    for seq_rec in mutations.keys():
+        q = str(seq_rec.seq)
+        q_id = seq_rec.id
         seq_len = len(q)
-        for mut_idx in mutations[q]:
+        for mut_idx in mutations[seq_rec]:
             found_match = False
             (min_start, max_start) = seed_starts(mut_idx,
                                                  k,
@@ -80,6 +82,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                     for (ref, ref_idx) in kmer_dict[seed]:
                         row_list.append({
                             "query_sequence": q,
+                            "query_name": q_id,
                             "query_mutation_index": mut_idx,
                             "reference_name": ref.name,
                             "reference_sequence": str(ref.seq),
@@ -89,6 +92,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
             if not found_match:
                 row_list.append({
                     "query_sequence": q,
+                    "query_name": q_id,
                     "query_mutation_index": mut_idx,
                     "reference_name": "",
                     "reference_sequence": "",
