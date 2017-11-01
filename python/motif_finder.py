@@ -48,12 +48,11 @@ def make_kmer_dictionary(references, k):
 def indexed_motif_finder(mutations, kmer_dict, k):
     """Find matches around a set of mutations.
 
-    Keyword arguments:
-    mutations -- A dictionary with query sequences as keys and a list
-    of mutation indices as values. The list can contain tuples describing
-    sets of mutations.
-    kmer_dict -- A dictionary indexed by k-mers giving the sequences they
-    appear in.
+    Keyword arguments: 
+    mutations -- A data frame containing the mutated sequences and
+    mutation indices.
+    kmer_dict -- A dictionary indexed by k-mers giving the sequences
+    they appear in.
 
     Returns: A pandas DataFrame containing the query sequence, the
     indices of the mutation(s) in the query, the name and sequence of
@@ -65,39 +64,37 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
     """
     row_list = []
-    for seq_rec in mutations.keys():
-        q = str(seq_rec.seq)
-        q_id = seq_rec.id
+    for row in range(mutations.shape[0]):
+        q = mutations["mutated_seq"][row]
+        q_id = mutations["mutated_seq_id"][row]
         seq_len = len(q)
-        for mut_idx in mutations[seq_rec]:
-            found_match = False
-            (min_start, max_start) = seed_starts(mut_idx,
-                                                 k,
-                                                 seq_len)
-            for start in range(min_start, max_start + 1):
-                # create the seed
-                seed = q[start:(start + k)]
-                mut_offset = np.min(mut_idx) - start
-                if seed in kmer_dict:
-                    for (ref, ref_idx) in kmer_dict[seed]:
-                        row_list.append({
+        mut_idx = mutations["mutation_index"][row]
+        found_match = False
+        (min_start, max_start) = seed_starts(mut_idx, k, seq_len)
+        for start in range(min_start, max_start + 1):
+            # create the seed
+            seed = q[start:(start + k)]
+            mut_offset = np.min(mut_idx) - start
+            if seed in kmer_dict:
+                for (ref, ref_idx) in kmer_dict[seed]:
+                    row_list.append({
                             "query_sequence": q,
                             "query_name": q_id,
                             "query_mutation_index": mut_idx,
                             "reference_name": ref.name,
                             "reference_sequence": str(ref.seq),
                             "reference_alignment": ref_idx + mut_offset
-                        })
-                    found_match = True
-            if not found_match:
-                row_list.append({
+                            })
+                found_match = True
+        if not found_match:
+            row_list.append({
                     "query_sequence": q,
                     "query_name": q_id,
                     "query_mutation_index": mut_idx,
                     "reference_name": "",
                     "reference_sequence": "",
                     "reference_alignment": np.nan
-                })
+                    })
     return pd.DataFrame(row_list).drop_duplicates().reset_index(drop=True)
 
 
