@@ -45,6 +45,38 @@ def make_kmer_dictionary(references, k):
     return d
 
 
+def n_alignments_per_mutation(mutations, kmer_dict, k):
+    """ Find the number of unique alignments in the reference set for each mutation
+
+    Keyword arguments:
+    mutations -- A data frame created by process_partis
+    kmer_dict -- A kmer dictionary created by make_kmer_dictionary
+    k -- The k used in the kmer dictionary
+
+    Returns: A data frame with the query name, mutation index, and the
+    number alignments in the reference set explaining that mutation.
+    """
+
+    # find all the matches in the references
+    imf = indexed_motif_finder(mutations, kmer_dict, k)
+    # extends the matches and drops all the duplicate matches from
+    # overlapping windows
+    extend_matches(imf)
+    # data frame with the unique mutations
+    query_and_idx = imf[["query_mutation_index", "query_name"]].drop_duplicates()
+    rows = []
+    for (q, i) in zip(query_and_idx["query_name"], query_and_idx["query_mutation_index"]):
+        templates = imf.loc[(imf.query_name == q) & (imf.query_mutation_index == i), :]
+        # no alignment is encoded by nan in reference_alignment
+        n_align = len([a for a in templates["reference_alignment"] if not np.isnan(a)])
+        rows.append({
+                "query_mutation_index": i,
+                "query_name": q,
+                "n_alignments": n_align
+                })
+    return(pd.DataFrame(rows))
+
+
 def indexed_motif_finder(mutations, kmer_dict, k):
     """Find matches around a set of mutations.
 

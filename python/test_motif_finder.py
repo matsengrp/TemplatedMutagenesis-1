@@ -1,7 +1,7 @@
 import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
-from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction
+from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation
 from process_partis import process_partis
 import pandas as pd
 
@@ -26,6 +26,21 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(imf["reference_alignment"][0], 2)
         self.assertEqual(imf["query_name"][0], "s1")
         self.assertEqual(imf["query_mutation_index"][0], 7)
+
+    def test_alignments_per_mutation(self):
+        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        mut_df = process_partis(partis_file)
+        r1 = SeqRecord("ATA", name="r1")
+        r2 = SeqRecord("AAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=2)
+        mut_df = process_partis(partis_file)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=2)
+        # there is one mutation in the partis file, and it can be
+        # explained by two alignments from r2
+        self.assertEqual(nalign.shape[0], 1)
+        self.assertEqual(nalign["n_alignments"][0], 2)
+        self.assertEqual(nalign["query_mutation_index"][0], 7)
+        self.assertEqual(nalign["query_name"][0], "s1")
 
 class testSeedStarts(unittest.TestCase):
 
