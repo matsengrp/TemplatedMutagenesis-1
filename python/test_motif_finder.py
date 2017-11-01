@@ -5,6 +5,7 @@ from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder
 from likelihood_given_gcv import likelihood_given_gcv
 from process_partis import process_partis
 import pandas as pd
+import numpy as np
 
 
 class testMotifFinder(unittest.TestCase):
@@ -44,16 +45,17 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(nalign["query_name"][0], "s1")
 
     def test_likelihood(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
-        mut_df = process_partis(partis_file)
-        r1 = SeqRecord("ATA", name="r1")
-        r2 = SeqRecord("AAA", name="r2")
-        kmer_dict = make_kmer_dictionary([r1, r2], k=2)
-        lik = likelihood_given_gcv(mut_df, kmer_dict, k=2)
-        self.assertEqual(lik.shape[0], 1)
-        self.assertEqual(lik["n_alignments_x"][0], 2)
-        self.assertEqual(lik["n_alignments_y"][0], 1)
-        self.assertEqual(lik["prob"][0], 2. / 3)
+        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_partis.csv"
+        reference_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_reference.fasta"
+        lik = likelihood_given_gcv(partis_file, reference_file, k=3)
+        prob_s1 = lik.loc[lik.query_name == "s1", "prob"]
+        prob_s2 = lik.loc[lik.query_name == "s2", "prob"]
+        prob_s3 = lik.loc[lik.query_name == "s3", "prob"]
+        # s1 should have prob = 1/2, s2 prob = 0, s3 prob = nan
+        self.assertEqual(prob_s1.item(), .5)
+        self.assertEqual(prob_s2.item(), 0)
+        self.assertEqual(np.isnan(prob_s3.item()), True)
+
 
 class testSeedStarts(unittest.TestCase):
 

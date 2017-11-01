@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def likelihood_given_gcv(mut_df, kmer_dict, k):
+def likelihood_given_gcv(partis_file, reference_file, k):
     """Finds the likelihood of mutations conditional on being due to gcv
 
     Keyword arguments:
@@ -20,6 +20,9 @@ def likelihood_given_gcv(mut_df, kmer_dict, k):
 
     """
     bases = ["A", "C", "G", "T"]
+    mut_df = process_partis(partis_file)
+    references = [r for r in SeqIO.parse(reference_file, "fasta")]
+    kmer_dict = make_kmer_dictionary(references, k)
     # make a data frame containing all the mutations we didn"t see
     unobs_mut_rows = []
     for index, row in mut_df.iterrows():
@@ -45,6 +48,10 @@ def likelihood_given_gcv(mut_df, kmer_dict, k):
     # observed mutations because motifs_obs was in the first position
     # in pd.merge
     def get_prob(row):
-        return(row["n_alignments_x"] / (row["n_alignments_x"] + row["n_alignments_y"] + 0.))
-    obs_and_unobs["prob"] = obs_and_unobs.apply(lambda row: get_prob(row), axis=1)
+        n_obs = row["n_alignments_x"]
+        n_unobs = row["n_alignments_y"]
+        if n_obs + n_unobs == 0:
+            return(np.nan)
+        return n_obs / (n_obs + n_unobs + 0.)
+    obs_and_unobs["prob"] = obs_and_unobs.apply(get_prob, axis=1)
     return(obs_and_unobs)
