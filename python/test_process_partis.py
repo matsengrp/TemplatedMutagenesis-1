@@ -1,5 +1,5 @@
 import unittest
-from process_partis import get_pairs, unseen_mutations, process_partis
+from process_partis import get_pairs, unseen_mutations, process_partis, process_partis_poly
 from likelihood_given_gcv import likelihood_given_gcv
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
@@ -17,10 +17,23 @@ class testPP(unittest.TestCase):
         # G and mutated base A
         self.assertEqual(mut_df.shape[0], 1)
         self.assertEqual(mut_df["mutated_seq"][0], "AAAAAAAA")
+        self.assertEqual(mut_df["naive_seq"][0], "AAAAAAAG")
         self.assertEqual(mut_df["mutated_seq_id"][0], "s1")
         self.assertEqual(mut_df["mutation_index"][0], 7)
         self.assertEqual(mut_df["gl_base"][0], "G")
         self.assertEqual(mut_df["mutated_base"][0], "A")
+
+    def test_process_partis_poly(self):
+        # run partis on the test data
+        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_poly_test.csv"
+        mut_df = process_partis_poly(partis_file, min_spacing=2)
+        self.assertEqual(mut_df.shape[0], 1)
+        self.assertEqual(mut_df["mutated_seq"][0], "AAAAAAAA")
+        self.assertEqual(mut_df["naive_seq"][0], "GAAAAGAG")
+        self.assertEqual(mut_df["mutated_seq_id"][0], "s1")
+        self.assertEqual(mut_df["mutation_index"][0], (5,7))
+        self.assertEqual(mut_df["gl_base"][0], "GG")
+        self.assertEqual(mut_df["mutated_base"][0], "AA")
 
     def test_get_pairs(self):
         # set up the test data

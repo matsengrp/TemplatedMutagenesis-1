@@ -24,6 +24,7 @@ def process_partis(partis_file):
             if(mutated_seq[i] != naive_seq[i]):
                 mutation_rows.append({
                         "mutated_seq": mutated_seq,
+                        "naive_seq": naive_seq,
                         "mutated_seq_id": annotations["unique_ids"][row],
                         "mutation_index": i,
                         "gl_base": naive_seq[i],
@@ -35,14 +36,23 @@ def process_partis(partis_file):
 
 def process_partis_poly(partis_file, min_spacing):
     # first get all the single mutations using process_partis
-    mutation_map = process_partis(partis_file)
-    # then make a map of all the pairs of mutations within a minimum
-    # distance of each other
-    poly_mutation_map = {}
-    for seq in mutation_map.keys():
-        mut_indices = mutation_map[seq]
-        poly_mutation_map[seq] = get_pairs(mut_indices, min_spacing)
-    return(poly_mutation_map)
+    mutation_df = process_partis(partis_file)
+    poly_mutation_rows = []
+    for seq_id in set(mutation_df["mutated_seq_id"]):
+        mutation_df_subset = mutation_df[mutation_df.mutated_seq_id == seq_id]
+        poly_mutations = get_pairs(mutation_df_subset["mutation_index"], min_spacing)
+        mutated_seq = mutation_df_subset["mutated_seq"][0]
+        naive_seq = mutation_df_subset["naive_seq"][0]
+        for pm in poly_mutations:
+            poly_mutation_rows.append({
+                    "mutated_seq": mutated_seq,
+                    "naive_seq": naive_seq,
+                    "mutated_seq_id": seq_id,
+                    "mutation_index": pm,
+                    "gl_base": ''.join(naive_seq[i] for i in pm),
+                    "mutated_base": ''.join(mutated_seq[i] for i in pm)
+                    })
+    return(pd.DataFrame(poly_mutation_rows))
 
 
 def get_pairs(mut_indices, min_spacing):
