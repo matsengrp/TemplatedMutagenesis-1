@@ -2,6 +2,7 @@ import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation
+from likelihood_given_gcv import likelihood_given_gcv
 from process_partis import process_partis
 import pandas as pd
 
@@ -41,6 +42,18 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(nalign["n_alignments"][0], 2)
         self.assertEqual(nalign["query_mutation_index"][0], 7)
         self.assertEqual(nalign["query_name"][0], "s1")
+
+    def test_likelihood(self):
+        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        mut_df = process_partis(partis_file)
+        r1 = SeqRecord("ATA", name="r1")
+        r2 = SeqRecord("AAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=2)
+        lik = likelihood_given_gcv(mut_df, kmer_dict, k=2)
+        self.assertEqual(lik.shape[0], 1)
+        self.assertEqual(lik["n_alignments_x"][0], 2)
+        self.assertEqual(lik["n_alignments_y"][0], 1)
+        self.assertEqual(lik["prob"][0], 2. / 3)
 
 class testSeedStarts(unittest.TestCase):
 

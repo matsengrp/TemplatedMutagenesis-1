@@ -1,11 +1,11 @@
-from process_partis import process_partis, unseen_mutations
-from motif_finder import indexed_motif_finder, make_kmer_dictionary, extend_matches
+from process_partis import process_partis
+from motif_finder import indexed_motif_finder, make_kmer_dictionary, extend_matches, n_alignments_per_mutation
 from Bio import SeqIO
 import numpy as np
 import pandas as pd
 
 
-def likelihood_given_gcv(partis_file, reference_file, k):
+def likelihood_given_gcv(mut_df, kmer_dict, k):
     """Finds the likelihood of mutations conditional on being due to gcv
 
     Keyword arguments:
@@ -19,47 +19,32 @@ def likelihood_given_gcv(partis_file, reference_file, k):
     sequence.
 
     """
-    # read in the reference sequences and create the k-mer dictionary
-    refs = [r for r in SeqIO.parse(reference_file, "fasta")]
-    kmerdict = make_kmer_dictionary(refs, k)
-    # get the observed mutations from the partis file
-    mutations_obs = process_partis(partis_file)
-    # the unobserved mutations
-    mutations_unobs = unseen_mutations(partis_file)
+    bases = ["A", "C", "G", "T"]
+    # make a data frame containing all the mutations we didn"t see
+    unobs_mut_rows = []
+    for index, row in mut_df.iterrows():
+        for b in bases:
+            if b not in set([row["gl_base"], row["mutated_base"]]):
+                r = row.copy()
+                unseen_seq = list(r["mutated_seq"])
+                unseen_seq[r["mutation_index"]] = b
+                r["mutated_seq"] = "".join(unseen_seq)
+                r["mutated_base"] = b
+                unobs_mut_rows.append(r)
+    unobs_mut_df = pd.DataFrame(unobs_mut_rows)
+
     # run motif finder on the observed and unobserved mutations
-    motifs_obs = indexed_motif_finder(mutations_obs, kmerdict, k)
-    motifs_unobs = indexed_motif_finder(mutations_unobs, kmerdict, k)
-    # extend all the matches and drop duplicates to get the unique
-    # alignments for the observed and unobserved mutations
-    extend_matches(motifs_obs)
-    extend_matches(motifs_unobs)
-    motifs_obs.drop_duplicates(inplace=True)
-    motifs_unobs.drop_duplicates(inplace=True)
-    # make a data frame containing all the (query, mutation_index)
-    # pairs. For each pair we will find the number of matches for the
-    # observed mutation and the unobserved mutations.
-    query_and_idx = motifs_obs[["query_mutation_index", "query_name"]].drop_duplicates()
-    rows = []
-    for (q, i) in zip(query_and_idx["query_name"],
-                      query_and_idx["query_mutation_index"]):
-        # the number of matches is the number of times we have an
-        # alignment in motifs_obs that is not the empty string (which
-        # refers to no match)
-        obs_templates = motifs_obs.loc[(motifs_obs.query_name == q) &
-                                       (motifs_obs.query_mutation_index == i), :]
-        n_obs = len([a for a in obs_templates["reference_name"] if a != ""])
-        unobs_templates = motifs_unobs.loc[(motifs_unobs.query_name == q) &
-                                     (motifs_unobs.query_mutation_index == i), :]
-        n_unobs = len([a for a in unobs_templates["reference_name"] if a != ""])
-        # if the top and bottom are both 0, the probability is not
-        # defined (gene conversion was impossible because there were
-        # no suitable templates)
-        if (n_obs + n_unobs) == 0:
-            prob = np.nan
-        else:
-            prob = float(n_obs) / float(n_obs + n_unobs)
-        rows.append({"query_name": q,
-                     "query_mutation_index": i,
-                     "probability": prob})
-    probdf = pd.DataFrame(rows)
-    return(probdf)
+    motifs_obs = n_alignments_per_mutation(mut_df, kmer_dict, k)
+    motifs_unobs = n_alignments_per_mutation(unobs_mut_df, kmer_dict, k)
+    obs_and_unobs = pd.merge(motifs_obs, motifs_unobs, 
+                             how="outer", 
+                             on=["query_mutation_index", "query_name"],
+                             validate="one_to_one")
+    # get the probabilities of seeing the observed
+    # mutations. n_alignments_x is the number of alignments for
+    # observed mutations because motifs_obs was in the first position
+    # in pd.merge
+    def get_prob(row):
+        return(row["n_alignments_x"] / (row["n_alignments_x"] + row["n_alignments_y"] + 0.))
+    obs_and_unobs["prob"] = obs_and_unobs.apply(lambda row: get_prob(row), axis=1)
+    return(obs_and_unobs)
