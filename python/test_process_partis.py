@@ -1,5 +1,5 @@
 import unittest
-from process_partis import get_pairs, unseen_mutations
+from process_partis import get_pairs, unseen_mutations, process_partis
 from likelihood_given_gcv import likelihood_given_gcv
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
@@ -8,6 +8,19 @@ class testPP(unittest.TestCase):
 
     def setUp(self):
         pass
+
+    def test_process_partis(self):
+        # run partis on the test data
+        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        mut_df = process_partis(partis_file)
+        # there is one mutation in the test at position 7 with gl base
+        # G and mutated base A
+        self.assertEqual(mut_df.shape[0], 1)
+        self.assertEqual(mut_df["mutated_seq"][0], "AAAAAAAA")
+        self.assertEqual(mut_df["mutated_seq_id"][0], "s1")
+        self.assertEqual(mut_df["mutation_index"][0], 7)
+        self.assertEqual(mut_df["gl_base"][0], "G")
+        self.assertEqual(mut_df["mutated_base"][0], "A")
 
     def test_get_pairs(self):
         # set up the test data

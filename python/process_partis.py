@@ -8,7 +8,7 @@ from Bio.SeqRecord import SeqRecord
 # sequences
 def process_partis(partis_file):
     annotations = pd.read_csv(partis_file)
-    mutation_map = {}
+    mutation_rows = []
     for row in range(annotations.shape[0]):
         naive_seq = annotations["naive_seq"][row]
         indel_reversed_seq = annotations["indel_reversed_seqs"][row]
@@ -20,9 +20,17 @@ def process_partis(partis_file):
             mutated_seq = indel_reversed_seq
         mutation_idx = [i for i in range(len(mutated_seq)) if
                         mutated_seq[i] != naive_seq[i]]
-        mutated_seq = SeqRecord(Seq(mutated_seq), id=annotations["unique_ids"][row])
-        mutation_map[mutated_seq] = mutation_idx
-    return(mutation_map)
+        for i in range(len(mutated_seq)):
+            if(mutated_seq[i] != naive_seq[i]):
+                mutation_rows.append({
+                        "mutated_seq": mutated_seq,
+                        "mutated_seq_id": annotations["unique_ids"][row],
+                        "mutation_index": i,
+                        "gl_base": naive_seq[i],
+                        "mutated_base": mutated_seq[i]
+                        })
+    mutation_df = pd.DataFrame(mutation_rows)
+    return(mutation_df)
 
 
 def process_partis_poly(partis_file, min_spacing):
