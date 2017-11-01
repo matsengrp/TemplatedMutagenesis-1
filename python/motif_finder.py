@@ -96,11 +96,11 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
     """
     row_list = []
-    for row in range(mutations.shape[0]):
-        q = mutations["mutated_seq"][row]
-        q_id = mutations["mutated_seq_id"][row]
+    for index, row in mutations.iterrows():
+        q = row["mutated_seq"]
+        q_id = row["mutated_seq_id"]
         seq_len = len(q)
-        mut_idx = mutations["mutation_index"][row]
+        mut_idx = row["mutation_index"]
         found_match = False
         (min_start, max_start) = seed_starts(mut_idx, k, seq_len)
         for start in range(min_start, max_start + 1):
