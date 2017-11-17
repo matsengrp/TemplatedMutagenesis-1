@@ -63,6 +63,8 @@ class testMotifFinder(unittest.TestCase):
         r2 = SeqRecord("TAAA", name="r2")
         kmer_dict = make_kmer_dictionary([r1, r2], k=3)
         nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        # there is one AAA sequence in r1 that could serve as a
+        # template for the mutation
         self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 1)
 
     def test_two_alignments_different_references(self):
