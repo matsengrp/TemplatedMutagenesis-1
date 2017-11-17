@@ -176,6 +176,12 @@ def extend_matches(df):
 
 
 def hit_fraction(df):
+    """Fraction of templated mutations.
+
+    Keyword arguments:
+    df -- A pandas DataFrame created by indexed_motif_finder.
+    Returns: The fraction of mutations in df that have a template.
+    """
     hit_dict = {}
     for (index, row) in df.iterrows():
         query = row["query_sequence"]
