@@ -5,15 +5,15 @@ import numpy as np
 import pandas as pd
 
 
-def likelihood_given_gcv(partis_file, reference_file, k):
+def likelihood_given_gcv(partis_file, kmer_dict, k):
     """Finds the likelihood of mutations conditional on being due to gcv
 
     Keyword arguments:
     partis_file -- A partis csv describing the mutations.
-    reference_file -- A fasta file with the reference sequences.
+    kmer_dict -- A kmer dictionary describing the references.
     k -- The minimum match length for gcv tracts.
 
-    Returns: A data frame giving the probability of seeing the each
+    Returns: A data frame giving the probability of seeing each
     observed mutation. Mutations are described by the name of the
     query sequence and the position of the mutation in that query
     sequence.
@@ -21,8 +21,6 @@ def likelihood_given_gcv(partis_file, reference_file, k):
     """
     bases = ["A", "C", "G", "T"]
     mut_df = process_partis(partis_file)
-    references = [r for r in SeqIO.parse(reference_file, "fasta")]
-    kmer_dict = make_kmer_dictionary(references, k)
     # make a data frame containing all the mutations we didn"t see
     unobs_mut_rows = []
     for index, row in mut_df.iterrows():
