@@ -1,6 +1,7 @@
 import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
+from Bio import SeqIO
 from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation
 from likelihood_given_gcv import likelihood_given_gcv
 from process_partis import process_partis
@@ -46,11 +47,13 @@ class testMotifFinder(unittest.TestCase):
 
     def test_likelihood(self):
         partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_partis.csv"
-        reference_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_reference.fasta"
-        lik = likelihood_given_gcv(partis_file, reference_file, k=3)
-        prob_s1 = lik.loc[lik.query_name == "s1", "prob"]
-        prob_s2 = lik.loc[lik.query_name == "s2", "prob"]
-        prob_s3 = lik.loc[lik.query_name == "s3", "prob"]
+        ref_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_reference.fasta"
+        references = [r for r in SeqIO.parse(ref_file, "fasta")]
+        refdict = make_kmer_dictionary(references, 3)
+        probs = likelihood_given_gcv(partis_file, refdict, 3)
+        prob_s1 = probs.loc[probs.query_name == "s1", "prob"]
+        prob_s2 = probs.loc[probs.query_name == "s2", "prob"]
+        prob_s3 = probs.loc[probs.query_name == "s3", "prob"]
         # s1 should have prob = 1/2, s2 prob = 0, s3 prob = nan
         self.assertEqual(prob_s1.item(), .5)
         self.assertEqual(prob_s2.item(), 0)
