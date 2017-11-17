@@ -59,20 +59,26 @@ def n_alignments_per_mutation(mutations, kmer_dict, k):
 
     # find all the matches in the references
     imf = indexed_motif_finder(mutations, kmer_dict, k)
-    # extends the matches and drops all the duplicate matches from
-    # overlapping windows
-    extend_matches(imf)
     # data frame with the unique mutations
-    query_and_idx = imf[["query_mutation_index", "query_name"]].drop_duplicates()
+    count_dict = {}
+    for index, row in imf.iterrows():
+        query = row["query_name"]
+        query_index = row["query_mutation_index"]
+        if np.isnan(row["reference_alignment"]):
+            increment = 0
+        else:
+            increment = 1
+        if (query, query_index) in count_dict.keys():
+            count_dict[(query, query_index)] += increment
+        else:
+            count_dict[(query, query_index)] = increment
+
     rows = []
-    for (q, i) in zip(query_and_idx["query_name"], query_and_idx["query_mutation_index"]):
-        templates = imf.loc[(imf.query_name == q) & (imf.query_mutation_index == i), :]
-        # no alignment is encoded by nan in reference_alignment
-        n_align = len([a for a in templates["reference_alignment"] if not np.isnan(a)])
+    for (query, query_index) in count_dict.keys():
         rows.append({
-                "query_mutation_index": i,
-                "query_name": q,
-                "n_alignments": n_align
+                "query_mutation_index": query_index,
+                "query_name": query,
+                "n_alignments": count_dict[(query, query_index)]
                 })
     return(pd.DataFrame(rows))
 
@@ -170,10 +176,10 @@ def extend_matches(df):
 
 def hit_fraction(df):
     hit_dict = {}
-    for row in df.index:
-        query = df.loc[row, "query_sequence"]
-        mut_idx = df.loc[row, "query_mutation_index"]
-        if df.loc[row, "reference_name"] == "":
+    for (index, row) in df.iterrows():
+        query = row["query_sequence"]
+        mut_idx = row["query_mutation_index"]
+        if row["reference_name"] == "":
             hit_dict[(query, mut_idx)] = 0
         else:
             hit_dict[(query, mut_idx)] = 1
