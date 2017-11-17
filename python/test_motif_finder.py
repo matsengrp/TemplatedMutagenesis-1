@@ -3,7 +3,6 @@ from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
 from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation, likelihood_given_gcv
-from process_partis import process_partis
 import pandas as pd
 import numpy as np
 
@@ -14,12 +13,17 @@ class testMotifFinder(unittest.TestCase):
         pass
 
     def test_imf(self):
-        partis_file = "../test_data/partis_test.csv"
-        mut_df = process_partis(partis_file)
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
         r1 = SeqRecord("ATA", name="r1")
         r2 = SeqRecord("CAA", name="r2")
         kmer_dict = make_kmer_dictionary([r1, r2], k=2)
-        mut_df = process_partis(partis_file)
         imf = indexed_motif_finder(mut_df, kmer_dict, k=2)
         # the partis file has a naive sequence AAAAAAAG and a mutated
         # sequence AAAAAAAA, so we should have one hit to r2
@@ -29,22 +33,89 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(imf["query_name"][0], "s1")
         self.assertEqual(imf["query_mutation_index"][0], 7)
 
-    def test_alignments_per_mutation(self):
-        partis_file = "../test_data/partis_test.csv"
-        mut_df = process_partis(partis_file)
-        r1 = SeqRecord("ATA", name="r1")
-        r2 = SeqRecord("AAA", name="r2")
-        kmer_dict = make_kmer_dictionary([r1, r2], k=2)
-        mut_df = process_partis(partis_file)
-        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=2)
-        # there is one mutation in the partis file, and it can be
-        # explained by two alignments from r2
-        self.assertEqual(nalign.shape[0], 1)
-        self.assertEqual(nalign["n_alignments"][0], 2)
-        self.assertEqual(nalign["query_mutation_index"][0], 7)
-        self.assertEqual(nalign["query_name"][0], "s1")
+    def test_no_alignments(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
+        r1 = SeqRecord("TTTT", name="r1")
+        r2 = SeqRecord("TCTC", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=3)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        # there are no AAA sequences in the references (r1 and r2), so
+        # we should get no alignments
+        self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 0)
+
+    def test_one_alignment(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
+        r1 = SeqRecord("TTTT", name="r1")
+        r2 = SeqRecord("TAAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=3)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 1)
+
+    def test_two_alignments_different_references(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
+        r1 = SeqRecord("AAAT", name="r1")
+        r2 = SeqRecord("TAAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=3)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        # in this setup, there is one template for the mutation in r2
+        self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 2)
+
+    def test_two_alignments_same_reference(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
+        r1 = SeqRecord("TTTT", name="r1")
+        r2 = SeqRecord("TAAAGAAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=3)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        # two templates for the mutation, both from r2
+        self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 2)
+
+    def test_two_alignments_overlapping(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }])
+        r1 = SeqRecord("TTTT", name="r1")
+        r2 = SeqRecord("TAAAA", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=3)
+        nalign = n_alignments_per_mutation(mut_df, kmer_dict, k=3)
+        # two overlapping templates for the mutation, both in r2
+        self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 2)
+
 
     def test_likelihood(self):
+        # set up
         partis_file = "../test_data/likelihood_test_partis.csv"
         ref_file = "../test_data/likelihood_test_reference.fasta"
         references = [r for r in SeqIO.parse(ref_file, "fasta")]
@@ -92,28 +163,42 @@ class testKmerDict(unittest.TestCase):
         pass
 
     def test_single_ref(self):
+        # make k-mer dictionaries with k = 2,3,4 for the sequence ATA
         r1 = SeqRecord(Seq("ATA"), name="r1")
-        d1 = make_kmer_dictionary([r1], 2)
-        d2 = make_kmer_dictionary([r1], 3)
-        d3 = make_kmer_dictionary([r1], 4)
-        self.assertEqual(len(d1.keys()), 2)
-        self.assertEqual("AT" in d1.keys(), True)
-        self.assertEqual("TA" in d1.keys(), True)
-        self.assertEqual(d1["AT"], set([(r1, 0)]))
-        self.assertEqual(d1["TA"], set([(r1, 1)]))
-        self.assertEqual(len(d2.keys()), 1)
-        self.assertEqual("ATA" in d2.keys(), True)
-        self.assertEqual(d2["ATA"], set([(r1, 0)]))
-        self.assertEqual(len(d3.keys()), 0)
+        d2 = make_kmer_dictionary([r1], 2)
+        d3 = make_kmer_dictionary([r1], 3)
+        d4 = make_kmer_dictionary([r1], 4)
+        # the 2-mer dictionary should have AT and TA
+        self.assertEqual(len(d2.keys()), 2)
+        self.assertEqual("AT" in d2.keys(), True)
+        self.assertEqual("TA" in d2.keys(), True)
+        # the AT 2-mer was in the r1 sequence at position 0
+        self.assertEqual(d2["AT"], set([(r1, 0)]))
+        # the TA 2-mer was in the r1 sequence at position 1
+        self.assertEqual(d2["TA"], set([(r1, 1)]))
+        # the 3-mer dictionary should contain just ATA
+        self.assertEqual(len(d3.keys()), 1)
+        self.assertEqual("ATA" in d3.keys(), True)
+        # the ATA 3-mer occurred in r1 at position 0
+        self.assertEqual(d3["ATA"], set([(r1, 0)]))
+        # there are no 4-mers in a sequence of size 3
+        self.assertEqual(d4, {})
 
     def test_multiple_refs(self):
+        # test making a dictionary out of multiple reference sequences
         r1 = SeqRecord("ATA", name="r1")
         r2 = SeqRecord("CTA", name="r2")
-        d1 = make_kmer_dictionary([r1, r2], 3)
+        # dictionary of 3-mers
+        d3 = make_kmer_dictionary([r1, r2], 3)
+        # dictionary of 2-mers
         d2 = make_kmer_dictionary([r1, r2], 2)
-        self.assertEqual(len(d1.keys()), 2)
-        self.assertEqual(d1["ATA"], set([(r1, 0)]))
-        self.assertEqual(d1["CTA"], set([(r2, 0)]))
+        # the 3-mer dictionary should have ATA at position 0 in r1 and
+        # CTA in position 0 in r2
+        self.assertEqual(len(d3.keys()), 2)
+        self.assertEqual(d3["ATA"], set([(r1, 0)]))
+        self.assertEqual(d3["CTA"], set([(r2, 0)]))
+        # the 2-mer dictionary should have AT at position 0 in r1, TA
+        # at position 1 in both r1 and r2, and CT at position 0 in r2
         self.assertEqual(len(d2.keys()), 3)
         self.assertEqual(d2["AT"], set([(r1, 0)]))
         self.assertEqual(d2["TA"], set([(r1, 1), (r2, 1)]))
