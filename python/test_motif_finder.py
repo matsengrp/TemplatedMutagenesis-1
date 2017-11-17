@@ -15,7 +15,7 @@ class testMotifFinder(unittest.TestCase):
         pass
 
     def test_imf(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        partis_file = "../test_data/partis_test.csv"
         mut_df = process_partis(partis_file)
         r1 = SeqRecord("ATA", name="r1")
         r2 = SeqRecord("CAA", name="r2")
@@ -31,7 +31,7 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(imf["query_mutation_index"][0], 7)
 
     def test_alignments_per_mutation(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        partis_file = "../test_data/partis_test.csv"
         mut_df = process_partis(partis_file)
         r1 = SeqRecord("ATA", name="r1")
         r2 = SeqRecord("AAA", name="r2")
@@ -46,8 +46,8 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(nalign["query_name"][0], "s1")
 
     def test_likelihood(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_partis.csv"
-        ref_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/likelihood_test_reference.fasta"
+        partis_file = "../test_data/likelihood_test_partis.csv"
+        ref_file = "../test_data/likelihood_test_reference.fasta"
         references = [r for r in SeqIO.parse(ref_file, "fasta")]
         refdict = make_kmer_dictionary(references, 3)
         probs = likelihood_given_gcv(partis_file, refdict, 3)
