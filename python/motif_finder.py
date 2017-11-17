@@ -7,13 +7,11 @@ def seed_starts(idx, seed_len, seq_len):
     """Finds starting positions for windows around mutations
 
     Keyword arguments:
-    idx_lo -- The lowest index of a mutation in the window
-    idx_hi -- The highest index of a mutation in the window.
+    idx -- Either a single number (for a single mutation) or a tuple or list containing the indices of multiple mutations.
     seed_len -- The length of the window.
     seq_len -- The length of the sequence thu mutations occur in.
 
-    Returns: A pair with the lowest and highest indices the window can
-    start at.
+    Returns: A pair with the lowest and highest indices a window containing the mutations can start at.
 
     """
     idx_hi = np.max(idx)
@@ -27,11 +25,11 @@ def make_kmer_dictionary(references, k):
     """Make a dictionary mapping kmers to sequences they appear in
 
     Keyword arguments:
-    references -- A list of SeqRecord objects (have names and sequences)
+    references -- A list of SeqRecord objects (with names and sequences)
     k -- The size of the k-mer
 
     Returns: A dictionary keyed by k-mers, mapping to sets of
-    reference names.
+    (name, location) pairs describing where the k-mer occurred.
 
     """
     d = {}
@@ -55,13 +53,17 @@ def n_alignments_per_mutation(mutations, kmer_dict, k):
     k -- The k used in the kmer dictionary
 
     Returns: A data frame with the query name, mutation index, and the
-    number alignments in the reference set explaining that mutation.
+    number of alignments in the reference set explaining that mutation.
     """
 
-    # find all the matches in the references
+    # a data frame describing the matches for each mutation in the references
     imf = indexed_motif_finder(mutations, kmer_dict, k)
-    # data frame with the unique mutations
+    # dictionary that will hold the mutations and how many templates they have
     count_dict = {}
+    # Each row in imf describes a mutation. If there is no template
+    # for that mutation, the reference_alignment column is
+    # np.nan. Otherwise, each row gives the location of one of the
+    # templates for that mutation.
     for index, row in imf.iterrows():
         query = row["query_name"]
         query_index = row["query_mutation_index"]
@@ -69,11 +71,13 @@ def n_alignments_per_mutation(mutations, kmer_dict, k):
             increment = 0
         else:
             increment = 1
+        # mutations are described as a pair with the query name and
+        # the location of the mutation
         if (query, query_index) in count_dict.keys():
             count_dict[(query, query_index)] += increment
         else:
             count_dict[(query, query_index)] = increment
-
+    # build a DataFrame with query names, indices, and number of alignments
     rows = []
     for (query, query_index) in count_dict.keys():
         rows.append({
@@ -87,7 +91,7 @@ def n_alignments_per_mutation(mutations, kmer_dict, k):
 def indexed_motif_finder(mutations, kmer_dict, k):
     """Find matches around a set of mutations.
 
-    Keyword arguments: 
+    Keyword arguments:
     mutations -- A data frame containing the mutated sequences and
     mutation indices.
     kmer_dict -- A dictionary indexed by k-mers giving the sequences
@@ -108,6 +112,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
         q_id = row["mutated_seq_id"]
         seq_len = len(q)
         mut_idx = row["mutation_index"]
+        # search through all the windows around the mutation and check whether they occur in the references
         found_match = False
         (min_start, max_start) = seed_starts(mut_idx, k, seq_len)
         for start in range(min_start, max_start + 1):
@@ -125,6 +130,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                             "reference_alignment": ref_idx + mut_offset
                             })
                 found_match = True
+        # if there wasn't a match, we still put the sequence in DataFrame
         if not found_match:
             row_list.append({
                     "query_sequence": q,
@@ -138,7 +144,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
 
 def extend_matches(df):
-    """Extends matches from indexed_motif_finder."""
+    """Extends matches from indexed_motif_finder. Adds a columns for left-most and right-most match indices and the match extent"""
 
     df["match_extent"] = pd.Series([0] * df.shape[0], index=df.index)
     df["query_left_idx"] = pd.Series([0] * df.shape[0], index=df.index)
@@ -182,12 +188,17 @@ def hit_fraction(df):
     df -- A pandas DataFrame created by indexed_motif_finder.
     Returns: The fraction of mutations in df that have a template.
     """
+    # a dictionary, keyed by (query sequence, mutation index) pairs,
+    # mapping to 0 if there was no template and 1 if there was a
+    # template
     hit_dict = {}
     for (index, row) in df.iterrows():
         query = row["query_sequence"]
         mut_idx = row["query_mutation_index"]
-        if row["reference_name"] == "":
+        # if there is no alignment, put a zero for the mutation
+        if row["reference_alignment"] == np.nan:
             hit_dict[(query, mut_idx)] = 0
+        # if there is an alignment, put one for the mutation
         else:
             hit_dict[(query, mut_idx)] = 1
     hits = np.mean([hit_dict[k] for k in hit_dict.keys()])
