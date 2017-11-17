@@ -2,8 +2,7 @@ import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
-from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation
-from likelihood_given_gcv import likelihood_given_gcv
+from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation, likelihood_given_gcv
 from process_partis import process_partis
 import pandas as pd
 import numpy as np
