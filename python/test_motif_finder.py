@@ -131,6 +131,50 @@ class testMotifFinder(unittest.TestCase):
         self.assertEqual(prob_s2.item(), 0)
         self.assertEqual(np.isnan(prob_s3.item()), True)
 
+    def test_hit_fraction(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAAAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 7,
+            "gl_base": "G",
+            "mutated_base": "A"
+        }, {
+            "mutated_seq": "TCTAAAAA",
+            "naive_seq": "ACTAAAAA",
+            "mutated_seq_id": "s2",
+            "mutation_index": 0,
+            "gl_base": "A",
+            "mutated_base": "T"
+        }])
+        r1 = SeqRecord("TCTC", name="r1")
+        kmer_dict = make_kmer_dictionary([r1], k=3)
+        imf = indexed_motif_finder(mut_df, kmer_dict, k=3)
+        # the first mutation has no templates in the reference and the
+        # second one does, so we should get a hit fraction of .5.
+        self.assertEqual(hit_fraction(imf), .5)
+
+    def test_mutation_overlap(self):
+        # here we want to test that indexed_motif_finder deals with
+        # multiple mutations in a window correctly: if there are two
+        # mutations next to each other and we want to know if one of
+        # them is templated, we should be searching for templates that
+        # contain only one of the mutations, not both
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "GTGGG",
+            "naive_seq": "AAGGG",
+            "mutated_seq_id": "s1",
+            "mutation_index": 0,
+            "gl_base": "A",
+            "mutated_base": "G"
+        }])
+        r1 = SeqRecord("GAG", name="r1")
+        kmer_dict = make_kmer_dictionary([r1], k=3)
+        imf = indexed_motif_finder(mut_df, kmer_dict, k=3)
+        # there's only one mutation, and it should have a template, so
+        # hit_fraction = 1
+        self.assertEqual(hit_fraction(imf), 1)
+
 
 class testSeedStarts(unittest.TestCase):
 

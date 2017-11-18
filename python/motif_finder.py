@@ -108,7 +108,9 @@ def indexed_motif_finder(mutations, kmer_dict, k):
     """
     row_list = []
     for index, row in mutations.iterrows():
-        q = row["mutated_seq"]
+        sequence_list = list(row["naive_seq"])
+        sequence_list[row["mutation_index"]] = row["mutated_base"]
+        q = "".join(sequence_list)
         q_id = row["mutated_seq_id"]
         seq_len = len(q)
         mut_idx = row["mutation_index"]
@@ -196,7 +198,7 @@ def hit_fraction(df):
         query = row["query_sequence"]
         mut_idx = row["query_mutation_index"]
         # if there is no alignment, put a zero for the mutation
-        if row["reference_alignment"] == np.nan:
+        if np.isnan(row["reference_alignment"]):
             hit_dict[(query, mut_idx)] = 0
         # if there is an alignment, put one for the mutation
         else:
