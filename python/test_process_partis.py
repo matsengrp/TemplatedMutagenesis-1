@@ -1,6 +1,6 @@
 import unittest
 from process_partis import get_pairs, unseen_mutations, process_partis, process_partis_poly
-from likelihood_given_gcv import likelihood_given_gcv
+from motif_finder import likelihood_given_gcv
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 
@@ -11,7 +11,7 @@ class testPP(unittest.TestCase):
 
     def test_process_partis(self):
         # run partis on the test data
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        partis_file = "../test_data/partis_test.csv"
         mut_df = process_partis(partis_file)
         # there is one mutation in the test at position 7 with gl base
         # G and mutated base A
@@ -25,7 +25,7 @@ class testPP(unittest.TestCase):
 
     def test_process_partis_poly(self):
         # run partis on the test data
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_poly_test.csv"
+        partis_file = "../test_data/partis_poly_test.csv"
         mut_df = process_partis_poly(partis_file, min_spacing=2)
         self.assertEqual(mut_df.shape[0], 1)
         self.assertEqual(mut_df["mutated_seq"][0], "AAAAAAAA")
@@ -55,7 +55,7 @@ class testUnseenMutations(unittest.TestCase):
         pass
 
     def test_correct_mutations(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test.csv"
+        partis_file = "../test_data/partis_test.csv"
         mm = unseen_mutations(partis_file)
         unseen_bases = set([k[mm[k][0]] for k in mm.keys()])
         unseen_seq_1 = Seq("AAAAAAAC")
@@ -73,7 +73,7 @@ class testUnseenMutations(unittest.TestCase):
                          set(["s1"]))
 
     def test_correct_mutations_indels(self):
-        partis_file = "/Users/juliefukuyama/GitHub/gcgcgc/test_data/partis_test_indels.csv"
+        partis_file = "../test_data/partis_test_indels.csv"
         mm = unseen_mutations(partis_file)
         unseen_bases = set([k[mm[k][0]] for k in mm.keys()])
         unseen_seq_1 = Seq("AAAAAAAC")
