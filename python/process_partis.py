@@ -43,7 +43,8 @@ def process_partis_poly(partis_file, min_spacing):
     mutation_df_set = set(mutation_df["mutated_seq_id"]) 
     for seq_id in mutation_df_set:
         mutation_df_subset = mutation_df[mutation_df.mutated_seq_id == seq_id]
-        poly_mutations = get_pairs(mutation_df_subset["mutation_index"], min_spacing)
+        poly_mutations = get_pairs(mutation_df_subset["mutation_index"], \
+                min_spacing)
         mutated_seq = mutation_df_subset["mutated_seq"][0]
         naive_seq = mutation_df_subset["naive_seq"][0]
         for pm in poly_mutations:
@@ -99,6 +100,7 @@ def unseen_mutations(partis_file):
                     continue
                 unseen_seq = list(mutated_seq)
                 unseen_seq[i] = b
-                unseen_seq = SeqRecord(Seq("".join(unseen_seq)), id=annotations["unique_ids"][row])
+                unseen_seq = SeqRecord(Seq("".join(unseen_seq)), \
+                        id=annotations["unique_ids"][row])
                 mutation_map[unseen_seq] = [i]
     return(mutation_map)
