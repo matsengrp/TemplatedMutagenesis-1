@@ -69,38 +69,3 @@ def get_pairs(mut_indices, min_spacing):
             else:
                 continue
     return(pairs)
-
-
-def unseen_mutations(partis_file):
-    annotations = pd.read_csv(partis_file)
-    mutation_map = {}
-    bases = ['A', 'G', 'C', 'T']
-    # loop through the sequences
-    row_count = annotations.shape[0]
-    for row in range(row_count):
-        # if there were indels we use the indel reversed sequence,
-        # otherwise we use the input sequence
-        naive_seq = annotations["naive_seq"][row]
-        indel_reversed_seq = annotations["indel_reversed_seqs"][row]
-        if pd.isnull(naive_seq):
-            continue
-        if pd.isnull(indel_reversed_seq):
-            mutated_seq = annotations["input_seqs"][row]
-        else:
-            mutated_seq = indel_reversed_seq
-        # a list of mutation indices for the sequence
-        mutation_idx = [i for i in range(len(mutated_seq)) if
-                        mutated_seq[i] != naive_seq[i]]
-        # for each mutation and each base that wasn't either germline
-        # or observed, make a sequence with the unseen base at that
-        # index
-        for i in mutation_idx:
-            for b in bases:
-                if b in [mutated_seq[i], naive_seq[i]] :
-                    continue
-                unseen_seq = list(mutated_seq)
-                unseen_seq[i] = b
-                unseen_seq = SeqRecord(Seq("".join(unseen_seq)), \
-                        id=annotations["unique_ids"][row])
-                mutation_map[unseen_seq] = [i]
-    return(mutation_map)
