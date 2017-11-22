@@ -7,11 +7,13 @@ def seed_starts(idx, seed_len, seq_len):
     """Finds starting positions for windows around mutations
 
     Keyword arguments:
-    idx -- Either a single number (for a single mutation) or a tuple or list containing the indices of multiple mutations.
+    idx -- Either a single number (for a single mutation) or a tuple or list 
+    containing the indices of multiple mutations.
     seed_len -- The length of the window.
-    seq_len -- The length of the sequence thu mutations occur in.
+    seq_len -- The length of the sequence the mutations occur in.
 
-    Returns: A pair with the lowest and highest indices a window containing the mutations can start at.
+    Returns: A pair with the lowest and highest indices a window containing 
+    the mutations can start at.
 
     """
     idx_hi = np.max(idx)
@@ -35,7 +37,8 @@ def make_kmer_dictionary(references, k):
     d = {}
     for ref in references:
         seq = str(ref.seq)
-        for start in range(0, len(seq) - k + 1):
+        seq_len = len(seq)
+        for start in range(0, seq_len - k + 1):
             kmer = seq[start:(start + k)]
             if kmer in d.keys():
                 d[kmer].add((ref, start))
@@ -45,7 +48,8 @@ def make_kmer_dictionary(references, k):
 
 
 def n_alignments_per_mutation(mutations, kmer_dict, k):
-    """ Find the number of unique alignments in the reference set for each mutation
+    """ Find the number of unique alignments in the reference set for each 
+    mutation
 
     Keyword arguments:
     mutations -- A data frame created by process_partis
@@ -96,6 +100,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
     mutation indices.
     kmer_dict -- A dictionary indexed by k-mers giving the sequences
     they appear in.
+    k -- The k used in the kmer dictionary
 
     Returns: A pandas DataFrame containing the query sequence, the
     indices of the mutation(s) in the query, the name and sequence of
@@ -114,7 +119,8 @@ def indexed_motif_finder(mutations, kmer_dict, k):
         q_id = row["mutated_seq_id"]
         seq_len = len(q)
         mut_idx = row["mutation_index"]
-        # search through all the windows around the mutation and check whether they occur in the references
+        # search through all the windows around the mutation and check whether 
+        # they occur in the references
         found_match = False
         (min_start, max_start) = seed_starts(mut_idx, k, seq_len)
         for start in range(min_start, max_start + 1):
@@ -132,7 +138,8 @@ def indexed_motif_finder(mutations, kmer_dict, k):
                             "reference_alignment": ref_idx + mut_offset
                             })
                 found_match = True
-        # if there wasn't a match, we still put the sequence in DataFrame
+        # if there wasn't a match, we still put the sequence in DataFrame,
+        # with np.nan as the value for reference_alignment
         if not found_match:
             row_list.append({
                     "query_sequence": q,
@@ -146,12 +153,14 @@ def indexed_motif_finder(mutations, kmer_dict, k):
 
 
 def extend_matches(df):
-    """Extends matches from indexed_motif_finder. Adds a columns for left-most and right-most match indices and the match extent"""
+    """Extends matches from indexed_motif_finder. Adds a columns for left-most 
+    and right-most match indices and the match extent"""
 
-    df["match_extent"] = pd.Series([0] * df.shape[0], index=df.index)
-    df["query_left_idx"] = pd.Series([0] * df.shape[0], index=df.index)
-    df["query_right_idx"] = pd.Series([0] * df.shape[0], index=df.index)
-    for row in range(0, df.shape[0]):
+    row_count = df.shape[0]
+    df["match_extent"] = pd.Series([0] * row_count, index=df.index)
+    df["query_left_idx"] = pd.Series([0] * row_count, index=df.index)
+    df["query_right_idx"] = pd.Series([0] * row_count, index=df.index)
+    for row in range(0, row_count):
         if df.loc[row, "reference_sequence"] == "":
             continue
         left = 0
@@ -174,7 +183,8 @@ def extend_matches(df):
                 break
             elif query_idx + right + 1 >= len(query_seq):
                 break
-            elif ref_seq[ref_idx + right + 1] == query_seq[query_idx + right + 1]:
+            elif ref_seq[ref_idx + right + 1] == \
+                    query_seq[query_idx + right + 1]:
                 right += 1
             else:
                 break
@@ -243,6 +253,7 @@ def likelihood_given_gcv(partis_file, kmer_dict, k):
                              how="outer",
                              on=["query_mutation_index", "query_name"],
                              validate="one_to_one")
+
     # get the probabilities of seeing the observed
     # mutations. n_alignments_x is the number of alignments for
     # observed mutations because motifs_obs was in the first position
@@ -253,5 +264,6 @@ def likelihood_given_gcv(partis_file, kmer_dict, k):
         if n_obs + n_unobs == 0:
             return(np.nan)
         return n_obs / (n_obs + n_unobs + 0.)
+
     obs_and_unobs["prob"] = obs_and_unobs.apply(get_prob, axis=1)
     return(obs_and_unobs)
