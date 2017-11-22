@@ -9,7 +9,8 @@ from Bio.SeqRecord import SeqRecord
 def process_partis(partis_file):
     annotations = pd.read_csv(partis_file)
     mutation_rows = []
-    for row in range(annotations.shape[0]):
+    row_count = annotations.shape[0]
+    for row in range(row_count):
         naive_seq = annotations["naive_seq"][row]
         indel_reversed_seq = annotations["indel_reversed_seqs"][row]
         if pd.isnull(naive_seq):
@@ -18,9 +19,10 @@ def process_partis(partis_file):
             mutated_seq = annotations["input_seqs"][row]
         else:
             mutated_seq = indel_reversed_seq
-        mutation_idx = [i for i in range(len(mutated_seq)) if
+        mutated_seq_len = len(mutated_seq)
+        mutation_idx = [i for i in range(mutated_seq_len) if
                         mutated_seq[i] != naive_seq[i]]
-        for i in range(len(mutated_seq)):
+        for i in range(mutated_seq_len):
             if(mutated_seq[i] != naive_seq[i]):
                 mutation_rows.append({
                         "mutated_seq": mutated_seq,
@@ -38,7 +40,8 @@ def process_partis_poly(partis_file, min_spacing):
     # first get all the single mutations using process_partis
     mutation_df = process_partis(partis_file)
     poly_mutation_rows = []
-    for seq_id in set(mutation_df["mutated_seq_id"]):
+    mutation_df_set = set(mutation_df["mutated_seq_id"]) 
+    for seq_id in mutation_df_set:
         mutation_df_subset = mutation_df[mutation_df.mutated_seq_id == seq_id]
         poly_mutations = get_pairs(mutation_df_subset["mutation_index"], min_spacing)
         mutated_seq = mutation_df_subset["mutated_seq"][0]
@@ -57,8 +60,9 @@ def process_partis_poly(partis_file, min_spacing):
 
 def get_pairs(mut_indices, min_spacing):
     pairs = []
-    for i in range(0, len(mut_indices) - 1):
-        for j in range(i+1, len(mut_indices)):
+    mut_indices_len = len(mut_indices)
+    for i in range(0, mut_indices_len - 1):
+        for j in range(i+1, mut_indices_len):
             if mut_indices[j] - mut_indices[i] <= min_spacing:
                 pairs.append((mut_indices[i], mut_indices[j]))
             else:
@@ -71,7 +75,8 @@ def unseen_mutations(partis_file):
     mutation_map = {}
     bases = ['A', 'G', 'C', 'T']
     # loop through the sequences
-    for row in range(annotations.shape[0]):
+    row_count = annotations.shape[0]
+    for row in range(row_count):
         # if there were indels we use the indel reversed sequence,
         # otherwise we use the input sequence
         naive_seq = annotations["naive_seq"][row]
