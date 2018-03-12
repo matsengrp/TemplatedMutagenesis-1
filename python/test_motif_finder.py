@@ -115,6 +115,27 @@ class testMotifFinder(unittest.TestCase):
         # two overlapping templates for the mutation, both in r2
         self.assertEqual(nalign.loc[nalign.query_name == "s1", "n_alignments"].item(), 2)
 
+    def test_imf_poly(self):
+        mut_df = pd.DataFrame([{
+            "mutated_seq": "AAAAAAAA",
+            "naive_seq": "AAAAAGAG",
+            "mutated_seq_id": "s1",
+            "mutation_index": (5, 7),
+            "gl_base": "GG",
+            "mutated_base": "AA"
+        }])
+        r1 = SeqRecord("AAAA", name="r1")
+        r2 = SeqRecord("AGAG", name="r2")
+        kmer_dict = make_kmer_dictionary([r1, r2], k=4)
+        imf = indexed_motif_finder(mut_df, kmer_dict, k=4)
+        # the partis file has a naive sequence AAAAAGAG and a mutated
+        # sequence AAAAAAAA, so we should have one hit to r1
+        self.assertEqual(imf.shape[0], 1)
+        self.assertEqual(imf["reference_name"][0], "r1")
+        self.assertEqual(imf["reference_alignment"][0], 1)
+        self.assertEqual(imf["query_name"][0], "s1")
+        self.assertEqual(imf["query_mutation_index"][0], (5,7))
+
 
     def test_likelihood(self):
         # set up
