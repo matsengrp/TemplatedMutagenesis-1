@@ -75,10 +75,10 @@ def process_partis_poly(partis_file, max_spacing):
         # just the mutations corresponding to the current sequence
         mutation_df_subset = mutation_df[mutation_df.mutated_seq_id == seq_id]
         # get all the pairs of mutations within max_spacing of each other
-        poly_mutations = get_pairs(mutation_df_subset["mutation_index"], \
+        poly_mutations = get_pairs(list(mutation_df_subset["mutation_index"]), \
                 max_spacing)
-        mutated_seq = mutation_df_subset["mutated_seq"][0]
-        naive_seq = mutation_df_subset["naive_seq"][0]
+        mutated_seq = list(mutation_df_subset["mutated_seq"])[0]
+        naive_seq = list(mutation_df_subset["naive_seq"])[0]
         # for each pair of mutations, create a row describing those mutations
         for pm in poly_mutations:
             poly_mutation_rows.append({
