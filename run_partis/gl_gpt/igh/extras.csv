@@ -1,0 +1,4 @@
+gene,cyst_position,tryp_position,phen_position,aligned_seq
+IGHV1-1*01,31,,,
+IGHD1-1*01,,,,
+IGHJ1-1*01,,1,,
