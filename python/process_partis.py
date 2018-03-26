@@ -7,7 +7,7 @@ from Bio.SeqRecord import SeqRecord
 # this should eventually include insertions as well as mutations, for
 # now it just compares the naive sequence to the indel reversed
 # sequences
-def process_partis(partis_file):
+def process_partis(partis_file, max_mutation_rate=1, use_indel_seqs=True):
     """Reads in mutations from a partis file
 
     Keyword arguments:
@@ -24,11 +24,18 @@ def process_partis(partis_file):
     # step through the partis data frame row by row
     for row in range(annotations.shape[0]):
         naive_seq = annotations["naive_seq"][row]
-        # we call mutations from the indel reversed sequences
-        indel_reversed_seq = annotations["indel_reversed_seqs"][row]
         # if no annotation, skip the sequence
         if pd.isnull(naive_seq):
             continue
+        # if the mutation rate is higher than we want, skip the sequence
+        if annotations["mut_freqs"][row] >= max_mutation_rate:
+            continue
+        # if partis called an indel and we don't want to use sequences
+        # with indels, skip the sequence
+        if not use_indel_seqs and annotations["indelfos"][row] != "[[]]":
+            continue
+        # we call mutations from the indel reversed sequences
+        indel_reversed_seq = annotations["indel_reversed_seqs"][row]
         # no indel reversed sequence means that there were no indels
         # to reverse and we should use the input sequence
         if pd.isnull(indel_reversed_seq):
@@ -52,7 +59,7 @@ def process_partis(partis_file):
     return(mutation_df)
 
 
-def process_partis_poly(partis_file, max_spacing):
+def process_partis_poly(partis_file, max_spacing, max_mutation_rate=1, use_indel_seqs=True):
     """Gets pairs of neighboring mutations for PolyMotifFinder.
 
     Keyword arguments:
@@ -66,7 +73,7 @@ def process_partis_poly(partis_file, max_spacing):
 
     """
     # first get all the single mutations using process_partis
-    mutation_df = process_partis(partis_file)
+    mutation_df = process_partis(partis_file, max_mutation_rate, use_indel_seqs)
     # a list to hold the rows of the data frame
     poly_mutation_rows = []
     # loop through the sequences
