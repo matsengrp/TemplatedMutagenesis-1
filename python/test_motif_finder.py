@@ -2,7 +2,7 @@ import unittest
 from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio import SeqIO
-from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation, likelihood_given_gcv
+from motif_finder import seed_starts, make_kmer_dictionary, indexed_motif_finder, extend_matches, hit_fraction, n_alignments_per_mutation, likelihood_given_gcv, per_base_alignments
 import pandas as pd
 import numpy as np
 
@@ -174,6 +174,27 @@ class testMotifFinder(unittest.TestCase):
         # the first mutation has no templates in the reference and the
         # second one does, so we should get a hit fraction of .5.
         self.assertEqual(hit_fraction(imf), .5)
+
+    def test_base_alignment(self):
+        partis_file = "../test_data/likelihood_test_partis.csv"
+        ref_file = "../test_data/likelihood_test_reference.fasta"
+        references = [r for r in SeqIO.parse(ref_file, "fasta")]
+        refdict = make_kmer_dictionary(references, 3)
+        perbase = per_base_alignments(partis_file, refdict, 3)
+        self.assertEqual(perbase.loc[0, "A"].item(), 0)
+        self.assertEqual(perbase.loc[0, "C"].item(), 0)
+        self.assertEqual(perbase.loc[0, "T"].item(), 2)
+        self.assertEqual(perbase.loc[0, "G"].item(), 2)
+        self.assertEqual(perbase.loc[1, "A"].item(), 0)
+        self.assertEqual(perbase.loc[1, "C"].item(), 0)
+        self.assertEqual(perbase.loc[1, "T"].item(), 2)
+        self.assertEqual(perbase.loc[1, "G"].item(), 2)
+        self.assertEqual(perbase.loc[2, "A"].item(), 0)
+        self.assertEqual(perbase.loc[2, "C"].item(), 0)
+        self.assertEqual(perbase.loc[2, "T"].item(), 0)
+        self.assertEqual(perbase.loc[2, "G"].item(), 0)
+
+
 
     def test_mutation_overlap(self):
         # here we want to test that indexed_motif_finder deals with

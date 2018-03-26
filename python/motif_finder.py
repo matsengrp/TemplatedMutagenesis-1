@@ -278,3 +278,35 @@ def likelihood_given_gcv(partis_file, kmer_dict, k):
 
     obs_and_unobs["prob"] = obs_and_unobs.apply(get_prob, axis=1)
     return(obs_and_unobs)
+
+
+def per_base_alignments(partis_file, kmer_dict, k):
+    """Finds the number of templates for each potential base at each mutated site.
+
+    Keyword arguments:
+    partis_file -- A partis csv describing the mutations.
+    kmer_dict -- A kmer dictionary describing the references.
+    k -- The minimum match length for gcv tracts.
+
+    Returns: A data frame giving the probability of seeing each
+    observed mutation. Mutations are described by the name of the
+    query sequence and the position of the mutation in that query
+    sequence.
+
+    """
+    bases = ["A", "C", "G", "T"]
+    mut_df = process_partis(partis_file)
+    output_rows = []
+    # make a data frame containing all the mutations we didn"t see
+    for index, row in mut_df.iterrows():
+        output_row = row.copy()
+        for b in bases:
+            r = row.copy()
+            unseen_seq = list(r["naive_seq"])
+            unseen_seq[r["mutation_index"]] = b
+            r["mutated_seq"] = "".join(unseen_seq)
+            r["mutated_base"] = b
+            output_row[b] = n_alignments_per_mutation(pd.DataFrame([r]), kmer_dict, k)["n_alignments"].item()
+        output_rows.append(output_row)
+
+    return(pd.DataFrame(output_rows))
