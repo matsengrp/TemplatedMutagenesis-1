@@ -47,17 +47,9 @@ prob_given_gcv = Command(
 # make plots of the false positive rate for mf and pmf
 Command(
 	'analysis/output/fpr_gpt.pdf',
-	fpr_gpt[0],
-	'Rscript analysis/make_fpr_plot.R $SOURCE $TARGET')
+	[fpr_gpt_vs_gpt[0], fpr_gpt_vs_v[0]],
+	'Rscript analysis/make_fpr_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
 Command(
 	'analysis/output/fpr_poly_gpt.pdf',
-	fpr_gpt[1],
-	'Rscript analysis/make_fpr_plot.R $SOURCE $TARGET')
-Command(
-	'analysis/output/fpr_ebola.pdf',
-	fpr_ebola[0],
-	'Rscript analysis/make_fpr_plot.R $SOURCE $TARGET')
-Command(
-	'analysis/output/fpr_poly_ebola.pdf',
-	fpr_ebola[1],
-	'Rscript analysis/make_fpr_plot.R $SOURCE $TARGET')
+	[fpr_gpt_vs_gpt[1], fpr_gpt_vs_v[1]],
+	'Rscript analysis/make_fpr_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
