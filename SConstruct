@@ -12,16 +12,31 @@ partis_ebola = Command(
 	      'data/ebola/ebola_sequences_heavy.fasta',
 	      'python run_partis/run_partis_ebola.py -i $SOURCE -o $TARGET')
 
-# compute the false positive rate for motif finder and poly motif finder on the gpt data
-fpr_gpt = Command(
-	['analysis/output/fpr.csv', 'analysis/output/fpr_poly.csv'],
-	partis_gpt,
-	'python analysis/compute_fpr_gpt.py -i $SOURCE -j ${TARGETS[0]} -k ${TARGETS[1]}')
-# compute the false positive rate for motif finder and poly motif finder on the ebola data
+# compute the false positive rate for motif finder and poly motif
+# finder on the gpt sequences vs. gpt reference set
+fpr_gpt_vs_gpt = Command(
+	['analysis/output/fpr_gpt_gpt.csv',
+         'analysis/output/fpr_poly_gpt_gpt.csv'],
+	[partis_gpt,
+         'data/reference_sets/gpt_132.fasta'],
+	'python analysis/compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+
+# compute the fpr for mf/pmf on the gpt sequences vs v reference set
+fpr_gpt_vs_v = Command(
+	['analysis/output/fpr_gpt_v.csv',
+         'analysis/output/fpr_poly_gpt_v.csv'],
+	[partis_gpt,
+         'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+	'python analysis/compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+
+# compute the fpr for mf/pmf on the ebola data vs. the v gene reference set
 fpr_ebola = Command(
-	['analysis/output/fpr_ebola.csv', 'analysis/output/fpr_poly_ebola.csv'],
-	partis_ebola,
-	'python analysis/compute_fpr_ebola.py -i $SOURCE -j ${TARGETS[0]} -k ${TARGETS[1]}')
+	['analysis/output/fpr_ebola.csv',
+         'analysis/output/fpr_poly_ebola.csv'],
+	[partis_ebola,
+         'data/reference_sets/imgt_ighv_human.fasta'],
+	'python analysis/compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+
 # compute the average probability of mutation given gene conversion on the gpt data
 prob_given_gcv = Command(
     'analysis/output/likelihood_gpt.csv',
