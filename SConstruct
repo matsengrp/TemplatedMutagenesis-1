@@ -37,7 +37,7 @@ fpr_ebola = Command(
          'data/reference_sets/imgt_ighv_human.fasta'],
 	'python analysis/compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
 
-# compute the average probability of mutation given gene conversion on the gpt data
+# compute the probability of each mutation given gene conversion on the gpt data
 prob_given_gcv_gpt = Command(
     'analysis/output/likelihood_gpt_gpt.csv',
     [partis_gpt,
@@ -61,3 +61,8 @@ Command(
 	'analysis/output/fpr_poly_gpt.pdf',
 	[fpr_gpt_vs_gpt[1], fpr_gpt_vs_v[1]],
 	'Rscript analysis/make_fpr_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
+
+Command(
+    'analysis/output/prob_given_gcv.pdf',
+    [prob_given_gcv_gpt, prob_given_gcv_v],
+    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
