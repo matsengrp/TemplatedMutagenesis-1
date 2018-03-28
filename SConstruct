@@ -38,10 +38,18 @@ fpr_ebola = Command(
 	'python analysis/compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
 
 # compute the average probability of mutation given gene conversion on the gpt data
-prob_given_gcv = Command(
-    'analysis/output/likelihood_gpt.csv',
-    partis_gpt,
-    'python analysis/compute_likelihoods.py -i $SOURCE -o $TARGET'
+prob_given_gcv_gpt = Command(
+    'analysis/output/likelihood_gpt_gpt.csv',
+    [partis_gpt,
+     'data/reference_sets/gpt_132.fasta'],
+    'python analysis/compute_likelihoods.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    )
+
+prob_given_gcv_v = Command(
+    'analysis/output/likelihood_gpt_v.csv',
+    [partis_gpt,
+     'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+    'python analysis/compute_likelihoods.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
 # make plots of the false positive rate for mf and pmf
