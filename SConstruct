@@ -52,6 +52,21 @@ prob_given_gcv_v = Command(
     'python analysis/compute_likelihoods.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
+# compute the probability of each mutation to each base on the gpt data
+per_base_prob_gpt_gpt = Command(
+    'analysis/output/per_base_gpt_gpt.csv',
+    [partis_gpt,
+     'data/reference_sets/gpt_132.fasta'],
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+)
+
+per_base_prob_gpt_v = Command(
+    'analysis/output/per_base_gpt_v.csv',
+    [partis_gpt,
+     'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+)
+
 # make plots of the false positive rate for mf and pmf
 Command(
 	'analysis/output/fpr_gpt.pdf',
@@ -66,3 +81,8 @@ Command(
     'analysis/output/prob_given_gcv.pdf',
     [prob_given_gcv_gpt, prob_given_gcv_v],
     'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
+
+Command(
+    'analysis/output/per_base_obs_vs_exp.pdf',
+    [per_base_prob_gpt_gpt, per_base_prob_gpt_v],
+    'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
