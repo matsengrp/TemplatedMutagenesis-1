@@ -1,6 +1,6 @@
-from gcgcgc.motif_finder import n_alignments_per_mutation
+from motif_finder import n_alignments_per_mutation
 import pandas as pd
-from gcgcgc.process_partis import process_partis
+from process_partis import process_partis
 
 def templates_per_base(partis_file, kmer_dict, k):
     """

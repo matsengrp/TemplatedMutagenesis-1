@@ -1,5 +1,5 @@
-from gcgcgc.motif_finder import make_kmer_dictionary
-from gcgcgc.motif_finder import per_base_alignments
+from motif_finder import likelihood_given_gcv
+from motif_finder import make_kmer_dictionary
 from Bio import SeqIO
 import os
 import argparse
@@ -19,13 +19,10 @@ refs = [r for r in SeqIO.parse(args.references, "fasta")]
 reference_name = os.path.splitext(os.path.basename(args.references))[0]
 k_list = range(args.kmin, args.kmax)
 kmer_dicts = [make_kmer_dictionary(refs, k) for k in k_list]
-k_list = range(args.kmin, args.kmax)
-refs = [r for r in SeqIO.parse(args.references, "fasta")]
-kmer_dicts = [make_kmer_dictionary(refs, k) for k in k_list]
 df_list = []
 for f in partis_files:
     for (k, kmer_dict) in zip(k_list, kmer_dicts):
-        out = per_base_alignments(os.path.join(args.input_directory, f), kmer_dict, k)
+        out = likelihood_given_gcv(os.path.join(args.input_directory, f), kmer_dict, k)
         out["k"] = k
         out["source"] = f
         out["reference"] = reference_name
