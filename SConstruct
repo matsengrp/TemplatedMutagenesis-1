@@ -24,7 +24,7 @@ fpr_gpt_vs_gpt = Command(
 	['output/fpr_gpt_gpt.csv',
          'output/fpr_poly_gpt_gpt.csv'],
 	[partis_gpt,
-         'data/reference_sets/gpt_132.fasta'],
+         os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
 	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
 
 # compute the fpr for mf/pmf on the gpt sequences vs v reference set
@@ -32,7 +32,7 @@ fpr_gpt_vs_v = Command(
 	['output/fpr_gpt_v.csv',
          'output/fpr_poly_gpt_v.csv'],
 	[partis_gpt,
-         'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+         os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
 	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
 
 # compute the fpr for mf/pmf on the ebola data vs. the v gene reference set
@@ -40,21 +40,21 @@ fpr_ebola = Command(
 	['output/fpr_ebola.csv',
          'output/fpr_poly_ebola.csv'],
 	[partis_ebola,
-         'data/reference_sets/imgt_ighv_human.fasta'],
+         os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
 	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
 
 # compute the probability of each mutation given gene conversion on the gpt data
 prob_given_gcv_gpt = Command(
     'output/likelihood_gpt_gpt.csv',
     [partis_gpt,
-     'data/reference_sets/gpt_132.fasta'],
+     os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
     'python compute_likelihoods.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
 prob_given_gcv_v = Command(
     'output/likelihood_gpt_v.csv',
     [partis_gpt,
-     'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
     'python compute_likelihoods.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
@@ -62,14 +62,14 @@ prob_given_gcv_v = Command(
 per_base_prob_gpt_gpt = Command(
     'output/per_base_gpt_gpt.csv',
     [partis_gpt,
-     'data/reference_sets/gpt_132.fasta'],
+     os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
     'python compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
 per_base_prob_gpt_v = Command(
     'output/per_base_gpt_v.csv',
     [partis_gpt,
-     'data/reference_sets/mus_musculus_129S1_v_genes.fasta'],
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
     'python compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
