@@ -3,28 +3,24 @@
 
 import os
 import os.path
-import sys
-import time
-import numpy as np
+import argparse
 import subprocess
-import getopt
 
 from os.path import join
 
 # parse input arguments
-input_file = ""
-output_directory = ""
-options, remainder = getopt.getopt(sys.argv[1:], "i:o:")
-for (opt, arg) in options:
-    if opt == "-i":
-        input_file = arg
-    if opt == "-o":
-        output_directory = arg
+parser = argparse.ArgumentParser(description='Run partis on ebola sequences')
+parser.add_argument('--input-file', dest='input_file')
+parser.add_argument('--output-directory', dest='output_directory')
+parser.add_argument('--partis', dest='partis')
+args = parser.parse_args()
 
 
-SCRATCH_DIR = 'run_partis/_tmp/'
-#PARTIS = 'partis/bin/partis'
-PARTIS = '/Users/juliefukuyama/GitHub/partis/bin/partis'
+# parse input arguments
+input_file = args.input_file
+output_directory = args.output_directory
+partis = args.partis
+scratch_dir = 'run_partis/_tmp/'
 
 
 # run partis
@@ -32,7 +28,7 @@ if not os.path.exists(output_directory):
     print "  creating directories"
     os.makedirs(output_directory)
 
-cmd = [PARTIS,
+cmd = [partis,
        'annotate',
        '--infname',
        input_file,
@@ -44,5 +40,5 @@ cmd = [PARTIS,
        'human'
 ]
 print "  calling:", " ".join(cmd)
-with open(join(SCRATCH_DIR, 'annotation_log.txt'), 'w') as f:
+with open(join(scratch_dir, 'annotation_log.txt'), 'w') as f:
     subprocess.call(map(str, cmd), stdout=f, stderr=f)

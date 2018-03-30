@@ -1,17 +1,22 @@
 #!/usr/bin/env scons
 # -*- python -*-
 
+import os
+DATA_DIR = 'data'
+PARTIS = '/Users/juliefukuyama/GitHub/partis/bin/partis'
+
+
 # use partis to call mutations on gpt sequences
 partis_gpt = Command(
 	   'run_partis/partis_output_gpt',
-	   'data/yeap/presto_output',
-	   'python run_partis/run_partis_gpt.py -i $SOURCE -o $TARGET')
+	   [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
+	   'python run_partis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # use partis to call mutations on ebola sequences
 partis_ebola = Command(
 	      'run_partis/partis_output_ebola',
-	      'data/ebola/ebola_sequences_heavy.fasta',
-	      'python run_partis/run_partis_ebola.py -i $SOURCE -o $TARGET')
+	      [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
+	      'python run_partis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # compute the false positive rate for motif finder and poly motif
 # finder on the gpt sequences vs. gpt reference set

@@ -3,24 +3,25 @@
 
 import os
 import os.path
-import sys
 import time
 import numpy as np
 import subprocess
-import getopt
+import argparse
 
 from os.path import join
 
 # parse input arguments
-input_directory = ""
-output_directory = ""
-options, remainder = getopt.getopt(sys.argv[1:], "i:o:")
-for (opt, arg) in options:
-    if opt == "-i":
-        input_directory = arg
-    if opt == "-o":
-        output_directory = arg
+parser = argparse.ArgumentParser(description='Run partis on gpt sequences')
+parser.add_argument('--input-directory', dest='input_directory')
+parser.add_argument('--output-directory', dest='output_directory')
+parser.add_argument('--partis', dest='partis')
+args = parser.parse_args()
 
+
+# parse input arguments
+input_directory = args.input_directory
+output_directory = args.output_directory
+partis = args.partis
 
 # the gpt passenger datasets
 DATASETS = [
@@ -41,8 +42,6 @@ DATASETS = [
 SCRATCH_DIR = 'run_partis/_tmp/'
 GERMLINE_GPT = 'run_partis/gl_gpt'
 SUFFIX_PATH = 'run_partis/seqs_with_suffix'
-#PARTIS = 'partis/bin/partis'
-PARTIS = '/Users/juliefukuyama/GitHub/partis/bin/partis'
 
 
 # add the fake D and J genes
@@ -65,8 +64,10 @@ def annotate(dataset, outdir, gl_dir):
     if not os.path.exists(outdir):
         print "  creating directories"
         os.makedirs(outdir)
-
-    cmd = [PARTIS,
+    if not os.path.exists(SCRATCH_DIR):
+        print "  creating directories"
+        os.makedirs(SCRATCH_DIR)
+    cmd = [partis,
            'annotate',
            '--infname',
            os.path.join(SUFFIX_PATH, dataset + '_added_suffix.fasta'),
