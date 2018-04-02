@@ -228,7 +228,7 @@ def hit_fraction(df):
     return hits
 
 
-def likelihood_given_gcv(partis_file, kmer_dict, k):
+def likelihood_given_gcv(partis_file, kmer_dict, k, max_mutation_rate, use_indel_seqs):
     """Finds the likelihood of mutations conditional on being due to gcv
 
     Keyword arguments:
@@ -243,7 +243,7 @@ def likelihood_given_gcv(partis_file, kmer_dict, k):
 
     """
     bases = ["A", "C", "G", "T"]
-    mut_df = process_partis(partis_file)
+    mut_df = process_partis(partis_file, max_mutation_rate=max_mutation_rate, use_indel_seqs=use_indel_seqs)
     # make a data frame containing all the mutations we didn"t see
     unobs_mut_rows = []
     for index, row in mut_df.iterrows():
