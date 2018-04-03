@@ -113,19 +113,7 @@ def indexed_motif_finder(mutations, kmer_dict, k):
     """
     row_list = []
     for index, row in mutations.iterrows():
-        # make the query sequence by replacing the naive sequence with
-        # the mutation we are searching for
-        sequence_list = list(row["naive_seq"])
-        # for motif_finder/single mutations, we replace just the one base
-        if type(row["mutation_index"]) is int:
-            sequence_list[row["mutation_index"]] = row["mutated_base"]
-        # for poly_motif_finder/multiple mutations, we have to loop
-        # over a tuple containing the mutations
-        elif type(row["mutation_index"]) is tuple:
-            for (i, b) in zip(list(row["mutation_index"]), list(row["mutated_base"])):
-                sequence_list[i] = b
-        else:
-            raise ValueError()
+        sequence_list = list(row["mutated_seq"])
         q = "".join(sequence_list)
         q_id = row["mutated_seq_id"]
         seq_len = len(q)
