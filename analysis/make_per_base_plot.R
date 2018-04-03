@@ -52,5 +52,18 @@ colnames(expectedm)[5:6] = c("target", "probability")
 full = merge(observedm, expectedm, by = c("id", "germline", "target", "reference", "k"))
 pdf(args$output, width = 8, height = 5)
 ggplot(subset(full, reference == "gpt_132" & k == 8), aes(x = probability, y = observed)) +
-    geom_point() + facet_grid(germline ~ target) + stat_smooth(method = "lm")
+    geom_jitter(alpha = .01, size = .5, width = .02, height = .02) +
+    facet_grid(germline ~ target) +
+    stat_smooth(method = "loess", se = FALSE) +
+    xlab("Probability of Mutation Under GCV Model") +
+    ylab("Mutation Observed") +
+    ggtitle("gpt reference, k = 8")
+
+ggplot(subset(full, reference == "mus_musculus_129S1_v_genes" & k == 8), aes(x = probability, y = observed)) +
+    geom_jitter(alpha = .01, size = .5, width = .02, height = .02) +
+    facet_grid(germline ~ target) +
+    stat_smooth(method = "loess", se = FALSE) +
+    xlab("Probability of Mutation Under GCV Model") +
+    ylab("Mutation Observed") +
+    ggtitle("Mouse reference, k = 8")
 dev.off()
