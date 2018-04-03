@@ -280,7 +280,7 @@ def likelihood_given_gcv(partis_file, kmer_dict, k, max_mutation_rate, use_indel
     return(obs_and_unobs)
 
 
-def per_base_alignments(partis_file, kmer_dict, k):
+def per_base_alignments(partis_file, kmer_dict, k, max_mutation_rate, use_indel_seqs):
     """Finds the number of templates for each potential base at each mutated site.
 
     Keyword arguments:
@@ -295,7 +295,7 @@ def per_base_alignments(partis_file, kmer_dict, k):
 
     """
     bases = ["A", "C", "G", "T"]
-    mut_df = process_partis(partis_file)
+    mut_df = process_partis(partis_file, max_mutation_rate=max_mutation_rate, use_indel_seqs=use_indel_seqs)
     output_rows = []
     # make a data frame containing all the mutations we didn"t see
     for index, row in mut_df.iterrows():
