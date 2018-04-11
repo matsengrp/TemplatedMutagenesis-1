@@ -29,19 +29,20 @@ for(i in 1:nrow(cis)) {
     cis$se[i] = sd(data_sub$hit_fraction) / sqrt(nrow(data_sub) - 1)
 }
 
-pdf(args$output, width=7, height=4)
+pdf(args$output, width=7.5, height=3.5)
 ggplot(fpr) +
-#    geom_boxplot(position = "identity", width = .5) +
-#    geom_jitter(size = 1, alpha = .5, width = .15, height = 0) +
     geom_point(aes(x = k, y = hit_fraction, color = reference, shape = tissue_type),
-               position = position_dodge(width=.6), alpha = .5) +
+               position = position_dodge(width=.4), alpha = .5, size = 1) +
     xlab("Minimum Donor Tract Size") +
-    ylab("Fraction of Mutations with Conversion Donors") +
-    labs(color = "Donor\nSet", shape = "Tissue") +
-    scale_color_discrete(breaks = names(reference_name_map), labels = reference_name_map) +
-    theme(legend.key.width = unit(.2, "cm"), legend.key.height = unit(.75, "cm")) +
+    ylab("Fraction of Mutations with\nConversion Donors\n") +
+    labs(color = "Donor Set", shape = "Tissue") +
+    scale_color_discrete(breaks = names(reference_name_map),
+                         labels = reference_name_map) +
+    scale_x_continuous(breaks = seq(8, 14)) +
+    scale_shape_manual(values = c(24,25)) +
+    paper_theme +
     geom_errorbar(aes(x = k, ymin = mean - 2 * se, ymax = mean + 2 * se, color = reference),
-                  data = cis, position = position_dodge(width=.6), width=.1) +
+                  data = cis, position = position_dodge(width=.4), width=.3) +
     geom_point(aes(x = k, y = mean, color = reference),
-                  data = cis, position = position_dodge(width=.6))
+                  data = cis, position = position_dodge(width=.4), size=2.4)
 dev.off()
