@@ -49,20 +49,22 @@ for(i in 1:nrow(cis)) {
     }
 }
 
-pdf(args$output, width=7, height=4)
+pdf(args$output, width=7.5, height=3.5)
 ggplot(grouped) +
     geom_point(aes(x = k, y = avgprob, color = reference, shape = tissue_type),
-                size = 1, alpha = .6, position = position_dodge(width=.6)) +
+                size = 1, alpha = .6, position = position_dodge(width=.4)) +
     xlab("Minimum Donor Tract Size") +
-    ylab("Average Probability of Mutation Given GCV") +
+    ylab("Average Probability of\nMutation Given GCV\n") +
     ylim(c(0, max(grouped$avgprob))) +
     scale_color_discrete(breaks = names(reference_name_map), labels = reference_name_map) +
-    labs(color = "Donor\nSet", shape = "Tissue") +
-    theme(legend.key.width = unit(.2, "cm"), legend.key.height = unit(.75, "cm")) +
+    scale_shape_manual(values = c(24, 25)) +
+    scale_x_continuous(breaks = seq(8, 14)) +
+    labs(color = "Donor Set", shape = "Tissue") +
+    paper_theme +
     geom_point(aes(x = k, y = estimates, color = reference),
-               data = cis, position = position_dodge(width=.6)) +
+               data = cis, position = position_dodge(width=.4), size = 2.4) +
     geom_errorbar(aes(x = k, ymin = estimates - 2 * ses, ymax = estimates + 2 * ses, color = reference),
-                  data = cis, width = .1, position = position_dodge(width=.6))
+                  data = cis, width = .1, position = position_dodge(width=.4), width=.3)
 dev.off()
 
 ## tests
@@ -81,4 +83,5 @@ for(kp in unique(probs_merged$k)) {
     }
 }
 ## p-values comparing average probability due to gene conversion from the two reference sets for k in 8 to 14
-sapply(stats[8:14], function(s) pt(s, df = 11, lower.tail = TRUE) * 2)
+print("p-values for confidence gpt vs. v comparison")
+print(sapply(stats[8:14], function(s) pt(s, df = 11, lower.tail = TRUE) * 2))
