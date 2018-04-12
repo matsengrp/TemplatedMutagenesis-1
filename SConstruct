@@ -73,6 +73,13 @@ per_base_prob_gpt_v = Command(
     'python compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
+# compute the bound on the rate of gene conversion on the ebola data
+ebola_bound = Command(
+    'output/ebola_bound.csv',
+    [fpr_ebola[0], fpr_gpt_vs_gpt[0]],
+    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output $TARGET'
+)
+
 # make plots of the false positive rate for mf and pmf
 Command(
 	'output/fpr_gpt.pdf',
@@ -92,3 +99,9 @@ Command(
     'output/per_base_obs_vs_exp.pdf',
     [per_base_prob_gpt_gpt, per_base_prob_gpt_v],
     'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET')
+
+# make phylogenetic tree plots
+Command(
+    'output/gene_tree_plots.pdf',
+    [],
+    'Rscript analysis/tree_divergence_plots.R --tree-output $TARGET')
