@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
 from Bio import SeqIO
-from motif_finder import make_kmer_dictionary
-from motif_finder import indexed_motif_finder
-from motif_finder import hit_fraction
-from process_partis import process_partis_poly
-from process_partis import process_partis
+from pymotiffinder.motif_finder import make_kmer_dictionary
+from pymotiffinder.motif_finder import indexed_motif_finder
+from pymotiffinder.motif_finder import hit_fraction
+from pymotiffinder.process_partis import process_partis_poly
+from pymotiffinder.process_partis import process_partis
 import os
 import argparse
 import pandas as pd
