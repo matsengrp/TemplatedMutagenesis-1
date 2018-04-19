@@ -86,14 +86,26 @@ ebola_bound = Command(
 # make plots of the false positive rate for mf and pmf
 fpr_gpt_plot = Command(
     os.path.join(OUTPUT_DIR, 'fpr_gpt.pdf'),
-    [fpr_gpt_vs_gpt[0], fpr_gpt_vs_v[0]],
-    'Rscript analysis/make_fpr_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+    fpr_gpt_vs_gpt[0],
+    'Rscript analysis/make_fpr_plot.R --input $SOURCES --output $TARGET'
 )
 fpr_poly_gpt_plot = Command(
     os.path.join(OUTPUT_DIR, 'fpr_poly_gpt.pdf'),
-    [fpr_gpt_vs_gpt[1], fpr_gpt_vs_v[1]],
-    'Rscript analysis/make_fpr_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+    fpr_gpt_vs_gpt[1],
+    'Rscript analysis/make_fpr_plot.R --input $SOURCE --output $TARGET'
 )
+
+fpr_gpt_v_plot = Command(
+    os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'),
+    fpr_gpt_vs_v[0],
+    'Rscript analysis/make_fpr_plot.R --input $SOURCES --output $TARGET'
+)
+fpr_poly_gpt_v_plot = Command(
+    os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf'),
+    fpr_gpt_vs_v[1],
+    'Rscript analysis/make_fpr_plot.R --input $SOURCE --output $TARGET'
+)
+
 
 prob_given_gcv_plot = Command(
     os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
@@ -111,5 +123,5 @@ per_base_plot = Command(
 tree_plots = Command(
     os.path.join(OUTPUT_DIR, 'gene_tree_plots.pdf'),
     [],
-    'Rscript analysis/tree_divergence_plots.R --tree-output $TARGET'
+    'Rscript analysis/tree_plots.R --tree-output $TARGET'
 )

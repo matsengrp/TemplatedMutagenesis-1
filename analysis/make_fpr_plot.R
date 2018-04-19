@@ -7,16 +7,14 @@ set.seed(1)
 library(argparse)
 library(reshape2)
 library(ggplot2)
+library(cowplot)
 source("analysis/plotting_extras.R")
 parser = ArgumentParser()
-parser$add_argument("--input-1", dest = "input_1")
-parser$add_argument("--input-2", dest = "input_2")
+parser$add_argument("--input", dest = "input")
 parser$add_argument("--output", dest = "output")
 args = parser$parse_args()
 
-fpr1 = read.csv(args$input_1)[,c("hit_fraction", "input_file", "reference", "k")]
-fpr2 = read.csv(args$input_2)[,c("hit_fraction", "input_file", "reference", "k")]
-fpr = rbind(fpr1, fpr2)
+fpr = read.csv(args$input)[,c("hit_fraction", "input_file", "reference", "k")]
 # tissue_types was loaded in with the source("analysis/plotting_extras.R") command
 fpr$tissue_type = tissue_types[fpr$input_file,]$tissue
 
@@ -31,7 +29,7 @@ for(i in 1:nrow(cis)) {
 
 pdf(args$output, width=7.5, height=3.5)
 ggplot(fpr) +
-    geom_point(aes(x = k, y = hit_fraction, color = reference, shape = tissue_type),
+    geom_point(aes(x = k, y = hit_fraction, shape = tissue_type),
                position = position_dodge(width=.4), alpha = .5, size = 1) +
     xlab("Minimum Donor Tract Size") +
     ylab("Fraction of Mutations with\nConversion Donors\n") +
@@ -41,8 +39,8 @@ ggplot(fpr) +
     scale_x_continuous(breaks = seq(8, 14)) +
     scale_shape_manual(values = c(24,25)) +
     paper_theme +
-    geom_errorbar(aes(x = k, ymin = mean - 2 * se, ymax = mean + 2 * se, color = reference),
+    geom_errorbar(aes(x = k, ymin = mean - 2 * se, ymax = mean + 2 * se),
                   data = cis, position = position_dodge(width=.4), width=.3) +
-    geom_point(aes(x = k, y = mean, color = reference),
+    geom_point(aes(x = k, y = mean),
                   data = cis, position = position_dodge(width=.4), size=2.4)
 dev.off()
