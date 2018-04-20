@@ -22,11 +22,14 @@ output_directory = args.output_directory
 partis = args.partis
 scratch_dir = 'run_partis/_tmp/'
 
-
 # run partis
 if not os.path.exists(output_directory):
     print "  creating directories"
     os.makedirs(output_directory)
+if not os.path.exists(scratch_dir):
+    print "  creating directories"
+    os.makedirs(scratch_dir)
+
 
 cmd = [partis,
        'annotate',
