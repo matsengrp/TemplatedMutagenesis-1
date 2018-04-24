@@ -130,3 +130,21 @@ manytextsize = function(n, mins=0.5, maxs=4, B=6, D=100){
     s = ifelse(s < maxs, s, maxs)
     return(s)
 }
+
+#' @param tab The content of the table, everything that goes below the
+#'     bar.
+#' @param colnames The column names, everything that goes above the
+#'     bar.
+#' @param alignment How the columns should be aligned, so something
+#'     like "l | l l l" would correspond to four columns, a bar
+#'     between the first and second column, and everything left
+#'     aligned.
+format_table <- function(tab, colnames, alignment) {
+    header = paste("\\begin{tabular}{", alignment, "}", sep = "")
+    topline = paste(paste(colnames, collapse = "&"), "\\\\\\hline", sep = "")
+    rows = apply(tab, 1, function(x) paste(x, collapse = "&"))
+    all_rows = paste(rows, collapse = "\\\\\n")
+    footer = "\\end{tabular}"
+    out = paste(header, topline, all_rows, footer, sep = "\n")
+    return(out)
+}

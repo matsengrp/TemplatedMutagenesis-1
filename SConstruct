@@ -76,7 +76,7 @@ per_base_prob_gpt_v = Command(
 # compute the bound on the rate of gene conversion on the ebola data
 ebola_bound = Command(
     [os.path.join(OUTPUT_DIR, 'ebola_bound.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound.csv')],
-    [fpr_ebola[0], fpr_gpt_vs_gpt[0]],
+    [fpr_ebola, fpr_gpt_vs_gpt],
     'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]}'
 )
 
