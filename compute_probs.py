@@ -1,5 +1,5 @@
-from motif_finder import likelihood_given_gcv
-from motif_finder import make_kmer_dictionary
+from pymotiffinder.motif_finder import likelihood_given_gcv
+from pymotiffinder.motif_finder import make_kmer_dictionary
 from Bio import SeqIO
 import os
 import argparse
