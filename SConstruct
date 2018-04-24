@@ -11,40 +11,37 @@ if not os.path.exists(OUTPUT_DIR):
 
 # use partis to call mutations on gpt sequences
 partis_gpt = Command(
-	   'run_partis/partis_output_gpt',
-	   [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
-	   'python run_partis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
+    'run_partis/partis_output_gpt',
+    [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
+    'python run_partis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # use partis to call mutations on ebola sequences
 partis_ebola = Command(
-	      'run_partis/partis_output_ebola',
-	      [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
-	      'python run_partis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
+    'run_partis/partis_output_ebola',
+    [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
+    'python run_partis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # compute the false positive rate for motif finder and poly motif
 # finder on the gpt sequences vs. gpt reference set
 fpr_gpt_vs_gpt = Command(
-	[os.path.join(OUTPUT_DIR, 'fpr_gpt_gpt.csv'),
-         os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_gpt.csv')],
-	[partis_gpt,
-         os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
-	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+    os.path.join(OUTPUT_DIR, 'fpr_gpt_gpt.csv'),
+    [partis_gpt,
+     os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
+    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
 # compute the fpr for mf/pmf on the gpt sequences vs v reference set
 fpr_gpt_vs_v = Command(
-	[os.path.join(OUTPUT_DIR, 'fpr_gpt_v.csv'),
-         os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.csv')],
-	[partis_gpt,
-         os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
-	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+    os.path.join(OUTPUT_DIR, 'fpr_gpt_v.csv'),
+    [partis_gpt,
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
 # compute the fpr for mf/pmf on the ebola data vs. the v gene reference set
 fpr_ebola = Command(
-	[os.path.join(OUTPUT_DIR, 'fpr_ebola.csv'),
-         os.path.join(OUTPUT_DIR, 'fpr_poly_ebola.csv')],
-	[partis_ebola,
-         os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
-	'python compute_fpr.py --input-directory ${SOURCES[0]} --output-csv ${TARGETS[0]} --output-csv-poly ${TARGETS[1]} --references ${SOURCES[1]}')
+    os.path.join(OUTPUT_DIR, 'fpr_ebola.csv'),
+    [partis_ebola,
+     os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
+    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
 # compute the probability of each mutation given gene conversion on the gpt data
 prob_given_gcv_gpt = Command(
@@ -78,34 +75,23 @@ per_base_prob_gpt_v = Command(
 
 # compute the bound on the rate of gene conversion on the ebola data
 ebola_bound = Command(
-    os.path.join(OUTPUT_DIR, 'ebola_bound.csv'),
+    [os.path.join(OUTPUT_DIR, 'ebola_bound.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound.csv')],
     [fpr_ebola[0], fpr_gpt_vs_gpt[0]],
-    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output $TARGET'
+    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]}'
 )
 
 # make plots of the false positive rate for mf and pmf
 fpr_gpt_plot = Command(
-    os.path.join(OUTPUT_DIR, 'fpr_gpt.pdf'),
-    fpr_gpt_vs_gpt[0],
-    'Rscript analysis/make_fpr_plot.R --input $SOURCES --output $TARGET'
-)
-fpr_poly_gpt_plot = Command(
-    os.path.join(OUTPUT_DIR, 'fpr_poly_gpt.pdf'),
-    fpr_gpt_vs_gpt[1],
-    'Rscript analysis/make_fpr_plot.R --input $SOURCE --output $TARGET'
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt.pdf')],
+    fpr_gpt_vs_gpt,
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
 
 fpr_gpt_v_plot = Command(
-    os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'),
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf')],
     fpr_gpt_vs_v[0],
-    'Rscript analysis/make_fpr_plot.R --input $SOURCES --output $TARGET'
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
-fpr_poly_gpt_v_plot = Command(
-    os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf'),
-    fpr_gpt_vs_v[1],
-    'Rscript analysis/make_fpr_plot.R --input $SOURCE --output $TARGET'
-)
-
 
 prob_given_gcv_plot = Command(
     os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
