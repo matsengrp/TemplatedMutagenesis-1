@@ -11,13 +11,15 @@ if not os.path.exists(OUTPUT_DIR):
 
 # use partis to call mutations on gpt sequences
 partis_gpt = Command(
-    'run_partis/partis_output_gpt',
+    #'run_partis/partis_output_gpt',
+    os.path.join(OUTPUT_DIR, 'partis/partis_output_gpt')
     [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
     'python run_partis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # use partis to call mutations on ebola sequences
 partis_ebola = Command(
-    'run_partis/partis_output_ebola',
+    #'run_partis/partis_output_ebola',
+    os.path.join(OUTPUT_DIR, 'partis/partis_output_ebola')
     [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
     'python run_partis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
@@ -27,35 +29,42 @@ fpr_gpt_vs_gpt = Command(
     os.path.join(OUTPUT_DIR, 'fpr_gpt_gpt.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
-    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
-# compute the fpr for mf/pmf on the gpt sequences vs v reference set
+# compute the fpr for mf/pmf on the gpt sequences vs 129S1 v reference set
 fpr_gpt_vs_v = Command(
     os.path.join(OUTPUT_DIR, 'fpr_gpt_v.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
-    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
+
+# compute the fpr for mf/pmf on the gpt sequences vs imgt v reference set
+fpr_gpt_vs_imgt_v = Command(
+    os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v.csv'),
+    [partis_gpt,
+     os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_mouse.fasta')],
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
 # compute the fpr for mf/pmf on the ebola data vs. the v gene reference set
 fpr_ebola = Command(
     os.path.join(OUTPUT_DIR, 'fpr_ebola.csv'),
     [partis_ebola,
      os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
-    'python compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
 
 # compute the probability of each mutation given gene conversion on the gpt data
 prob_given_gcv_gpt = Command(
     os.path.join(OUTPUT_DIR, 'prob_gpt_gpt.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
-    'python compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
 prob_given_gcv_v = Command(
     os.path.join(OUTPUT_DIR, 'prob_gpt_v.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
-    'python compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
 # compute the probability of each mutation to each base on the gpt data
@@ -63,14 +72,14 @@ per_base_prob_gpt_gpt = Command(
     os.path.join(OUTPUT_DIR, 'per_base_gpt_gpt.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
-    'python compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
 per_base_prob_gpt_v = Command(
     os.path.join(OUTPUT_DIR, 'per_base_gpt_v.csv'),
     [partis_gpt,
      os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
-    'python compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
 # compute the bound on the rate of gene conversion on the ebola data
@@ -90,6 +99,12 @@ fpr_gpt_plot = Command(
 fpr_gpt_v_plot = Command(
     [os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf')],
     fpr_gpt_vs_v[0],
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
+)
+
+fpr_gpt_imgt_v_plot = Command(
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_imgt_v.pdf')],
+    fpr_gpt_vs_imgt_v[0],
     'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
 
