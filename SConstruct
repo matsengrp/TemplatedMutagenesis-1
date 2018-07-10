@@ -11,17 +11,15 @@ if not os.path.exists(OUTPUT_DIR):
 
 # use partis to call mutations on gpt sequences
 partis_gpt = Command(
-    #'run_partis/partis_output_gpt',
-    os.path.join(OUTPUT_DIR, 'partis/partis_output_gpt')
+    os.path.join(OUTPUT_DIR, 'partis/partis_output_gpt'),
     [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
-    'python run_partis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
+    'python analysis/run_partis_gpt.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # use partis to call mutations on ebola sequences
 partis_ebola = Command(
-    #'run_partis/partis_output_ebola',
-    os.path.join(OUTPUT_DIR, 'partis/partis_output_ebola')
+    os.path.join(OUTPUT_DIR, 'partis/partis_output_ebola'),
     [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
-    'python run_partis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
+    'python analysis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
 # compute the false positive rate for motif finder and poly motif
 # finder on the gpt sequences vs. gpt reference set

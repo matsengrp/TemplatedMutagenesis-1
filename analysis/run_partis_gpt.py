@@ -39,9 +39,9 @@ DATASETS = [
     'SRR2229707'
     ]
 
-SCRATCH_DIR = 'run_partis/_tmp/'
-GERMLINE_GPT = 'run_partis/gl_gpt'
-SUFFIX_PATH = 'run_partis/seqs_with_suffix'
+SCRATCH_DIR = '_tmp/'
+GERMLINE_GPT = 'data/reference_sets/gl_gpt'
+SUFFIX_PATH = 'seqs_with_suffix'
 
 
 # add the fake D and J genes
@@ -52,7 +52,7 @@ def add_suffix(dataset):
     cmd = ['seqmagick',
            'convert',
            '--apply-function',
-           'run_partis/add_suffix.py:add_suffix',
+           'analysis/add_suffix.py:add_suffix',
            os.path.join(input_directory, dataset + '_atleast-2.fastq'),
            os.path.join(SUFFIX_PATH, dataset + '_added_suffix.fasta')]
     print 'calling: ', ' '.join(cmd)
