@@ -76,13 +76,12 @@ def annotate(dataset, outdir, gl_dir):
            '--initial-germline-dir',
            gl_dir,
            '--only-smith-waterman',
-           '--dont-write-parameters',
            '--sw-cachefname',
-           SCRATCH_DIR + str(time.time() + np.random.randint(10000)),
+           os.path.join(SCRATCH_DIR, str(time.time() + np.random.randint(10000))),
            '--gap-open-penalty',
            '60']
     print "  calling:", " ".join(cmd)
-    with open(join(SCRATCH_DIR, 'annotation_log.txt'), 'w') as f:
+    with open(join(SCRATCH_DIR, 'annotation_log_' + dataset + '.txt'), 'w') as f:
         subprocess.call(map(str, cmd), stdout=f, stderr=f)
 
 
