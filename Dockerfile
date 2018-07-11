@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN conda update -y conda
 RUN conda install -y python=2.7
-RUN conda install -y biopython pandas psutil pysam scons seaborn zlib
+RUN conda install -y biopython pandas psutil scons seaborn zlib
+RUN conda install -y -c bioconda pysam
 RUN conda install -y -c biocore mafft
 RUN pip install colored-traceback dendropy==3.12.3
 RUN pip install seqmagick==0.6.2
