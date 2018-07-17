@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 from pymotiffinder.motif_finder import motif_finder
 from pymotiffinder.motif_finder import poly_motif_finder
 from pymotiffinder.motif_finder import hit_fraction

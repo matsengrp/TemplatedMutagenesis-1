@@ -56,7 +56,7 @@ def add_suffix(dataset):
            os.path.join(input_directory, dataset + '_atleast-2.fastq'),
            os.path.join(SUFFIX_PATH, dataset + '_added_suffix.fasta')]
     print 'calling: ', ' '.join(cmd)
-    subprocess.call(map(str, cmd))
+    subprocess.call(cmd)
 
 
 # run partis
@@ -82,7 +82,7 @@ def annotate(dataset, outdir, gl_dir):
            '60']
     print "  calling:", " ".join(cmd)
     with open(join(SCRATCH_DIR, 'annotation_log_' + dataset + '.txt'), 'w') as f:
-        subprocess.call(map(str, cmd), stdout=f, stderr=f)
+        subprocess.call(cmd, stdout=f, stderr=f)
 
 
 for dataset in DATASETS:

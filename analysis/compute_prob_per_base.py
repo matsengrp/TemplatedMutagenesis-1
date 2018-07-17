@@ -1,5 +1,5 @@
-from motif_finder import make_kmer_dictionary
-from motif_finder import per_base_alignments
+from pymotiffinder.motif_finder import make_kmer_dictionary
+from pymotiffinder.motif_finder import per_base_alignments
 from Bio import SeqIO
 import os
 import argparse
