@@ -2,8 +2,6 @@
 # -*- python -*-
 
 import os
-import sys
-print(sys.path)
 env = Environment(ENV = os.environ)
 DATA_DIR = 'data'
 OUTPUT_DIR = 'output'
@@ -68,6 +66,20 @@ prob_given_gcv_v = env.Command(
     'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
     )
 
+prob_given_gcv_gpt_rc = env.Command(
+    os.path.join(OUTPUT_DIR, 'prob_gpt_gpt_rc.csv'),
+    [partis_gpt,
+     os.path.join(DATA_DIR, 'reference_sets/gpt_132.fasta')],
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --rc True'
+    )
+
+prob_given_gcv_v_rc = env.Command(
+    os.path.join(OUTPUT_DIR, 'prob_gpt_v_rc.csv'),
+    [partis_gpt,
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --rc True'
+    )
+
 # compute the probability of each mutation to each base on the gpt data
 per_base_prob_gpt_gpt = env.Command(
     os.path.join(OUTPUT_DIR, 'per_base_gpt_gpt.csv'),
@@ -84,45 +96,93 @@ per_base_prob_gpt_v = env.Command(
 )
 
 # compute the bound on the rate of gene conversion on the ebola data
-ebola_bound = env.Command(
+env.Command(
     [os.path.join(OUTPUT_DIR, 'ebola_bound.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound.csv')],
     [fpr_ebola, fpr_gpt_vs_gpt],
     'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]}'
 )
 
+# compute the bound on the rate of gene conversion on the ebola data using reverse complements
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'ebola_bound_rc.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound_rc.csv')],
+    [fpr_ebola, fpr_gpt_vs_gpt],
+    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --rc True'
+)
+
 # make plots of the false positive rate for mf and pmf
-fpr_gpt_plot = env.Command(
+env.Command(
     [os.path.join(OUTPUT_DIR, 'fpr_gpt.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt.pdf')],
     fpr_gpt_vs_gpt,
     'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
 
-fpr_gpt_v_plot = env.Command(
+env.Command(
     [os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf')],
     fpr_gpt_vs_v[0],
     'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
 
-fpr_gpt_imgt_v_plot = env.Command(
+env.Command(
     [os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_imgt_v.pdf')],
     fpr_gpt_vs_imgt_v[0],
     'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
 )
 
-prob_given_gcv_plot = env.Command(
+# tables with mf/polymf rates
+env.Command(
+    os.path.join(OUTPUT_DIR, 'ebola_mf_rate.tex'),
+    fpr_ebola,
+    'Rscript analysis/make_rate_table.R --input-csv $SOURCES --output-tex $TARGETS --rc False'
+)
+
+env.Command(
+    os.path.join(OUTPUT_DIR, 'ebola_mf_rate_rc.tex'),
+    fpr_ebola,
+    'Rscript analysis/make_rate_table.R --input-csv $SOURCES --output-tex $TARGETS --rc True'
+)
+
+# rate plots with rc
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_rc.pdf')],
+    fpr_gpt_vs_gpt,
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
+)
+
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt_v_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v_rc.pdf')],
+    fpr_gpt_vs_v[0],
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
+)
+
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_imgt_v_rc.pdf')],
+    fpr_gpt_vs_imgt_v[0],
+    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
+)
+
+# plot for probability of mutation given gene conversion
+env.Command(
     os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
     [prob_given_gcv_gpt, prob_given_gcv_v],
     'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
 )
 
-per_base_plot = env.Command(
+# plot for the probability of mutation given gene conversion with reverse complements
+env.Command(
+    os.path.join(OUTPUT_DIR, 'prob_given_gcv_rc.pdf'),
+    [prob_given_gcv_gpt_rc, prob_given_gcv_v_rc],
+    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+)
+
+# plot describing the per base observed vs. expected probabilities
+env.Command(
     os.path.join(OUTPUT_DIR, 'per_base_obs_vs_exp.pdf'),
     [per_base_prob_gpt_gpt, per_base_prob_gpt_v],
     'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
 )
 
 # make phylogenetic tree plots
-tree_plots = env.Command(
+env.Command(
     os.path.join(OUTPUT_DIR, 'gene_tree_plots.pdf'),
     [],
     'Rscript analysis/tree_plots.R --tree-output $TARGET'

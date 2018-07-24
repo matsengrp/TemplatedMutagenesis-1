@@ -15,6 +15,7 @@ parser = ArgumentParser()
 parser$add_argument("--input", dest = "input")
 parser$add_argument("--output-mf", dest = "output_mf")
 parser$add_argument("--output-pmf", dest = "output_pmf")
+parser$add_argument("--rc", dest = "rc", default = "False")
 args = parser$parse_args()
 
 fpr = read.csv(args$input)[,c("hit_fraction", "input_file", "reference", "k",
@@ -28,41 +29,41 @@ cis = fpr %>%
     summarise(mean = mean(hit_fraction), se = sd(hit_fraction) / sqrt(length(hit_fraction) - 1))
 
 pdf(args$output_mf, width=7.5, height=3.5)
-ggplot(subset(fpr, type == "mf" & reverse_complement == "False")) +
+ggplot(subset(fpr, type == "mf" & reverse_complement == args$rc)) +
     geom_point(aes(x = k, y = hit_fraction, shape = tissue_type),
                position = position_dodge(width=.4), alpha = .5, size = 1) +
     xlab("Minimum Donor Tract Size") +
-    ylab("Fraction of Mutations with\nConversion Donors\n") +
+    ylab("Fraction of Single Mutations\nwith Conversion Donors\n") +
     labs(color = "Donor Set", shape = "Tissue") +
     scale_color_discrete(breaks = names(reference_name_map),
                          labels = reference_name_map) +
     scale_x_continuous(breaks = seq(8, 14)) +
-    scale_shape_manual(values = c(24,25)) +
+    scale_shape_manual("", values = c(24,25)) +
     paper_theme +
     geom_errorbar(aes(x = k, ymin = mean - 2 * se, ymax = mean + 2 * se),
-                  data = subset(cis, reverse_complement == "False" & type == "mf"),
+                  data = subset(cis, reverse_complement == args$rc & type == "mf"),
                   position = position_dodge(width=.4), width=.3) +
     geom_point(aes(x = k, y = mean),
-               data = subset(cis, reverse_complement == "False" & type == "mf"),
+               data = subset(cis, reverse_complement == args$rc & type == "mf"),
                position = position_dodge(width=.4), size=2.4)
 dev.off()
 
 pdf(args$output_pmf, width=7.5, height=3.5)
-ggplot(subset(fpr, type == "pmf" & reverse_complement == "False")) +
+ggplot(subset(fpr, type == "pmf" & reverse_complement == args$rc)) +
     geom_point(aes(x = k, y = hit_fraction, shape = tissue_type),
                position = position_dodge(width=.4), alpha = .5, size = 1) +
     xlab("Minimum Donor Tract Size") +
-    ylab("Fraction of Mutations with\nConversion Donors\n") +
+    ylab("Fraction of Pairs of Mutations\nwith Conversion Donors\n") +
     labs(color = "Donor Set", shape = "Tissue") +
     scale_color_discrete(breaks = names(reference_name_map),
                          labels = reference_name_map) +
     scale_x_continuous(breaks = seq(8, 14)) +
-    scale_shape_manual(values = c(24,25)) +
+    scale_shape_manual("", values = c(24,25)) +
     paper_theme +
     geom_errorbar(aes(x = k, ymin = mean - 2 * se, ymax = mean + 2 * se),
-                  data = subset(cis, reverse_complement == "False" & type == "pmf"),
+                  data = subset(cis, reverse_complement == args$rc & type == "pmf"),
                   position = position_dodge(width=.4), width=.3) +
     geom_point(aes(x = k, y = mean),
-               data = subset(cis, reverse_complement == "False" & type == "pmf"),
+               data = subset(cis, reverse_complement == args$rc & type == "pmf"),
                position = position_dodge(width=.4), size=2.4)
 dev.off()

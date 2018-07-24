@@ -14,13 +14,14 @@ parser.add_argument('--kmin', dest='kmin', type=int, default=8)
 parser.add_argument('--kmax', dest='kmax', type=int, default=14)
 parser.add_argument('--max-mutation-rate', dest='max_mutation_rate', type=float, default=.1)
 parser.add_argument('--use-indel-seqs', dest='use_indel_seqs', type=bool, default=True)
+parser.add_argument('--rc', dest = 'rc', type=bool, default=False)
 args = parser.parse_args()
 
 partis_files = os.listdir(args.input_directory)
 refs = [r for r in SeqIO.parse(args.references, "fasta")]
 reference_name = os.path.splitext(os.path.basename(args.references))[0]
 k_list = range(args.kmin, args.kmax + 1)
-kmer_dicts = [make_kmer_dictionary(refs, k) for k in k_list]
+kmer_dicts = [make_kmer_dictionary(refs, k, reverse_complement=args.rc) for k in k_list]
 df_list = []
 for f in partis_files:
     for (k, kmer_dict) in zip(k_list, kmer_dicts):

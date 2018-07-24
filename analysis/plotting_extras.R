@@ -9,7 +9,7 @@ paper_theme = theme(legend.key.width = unit(.2, "cm"),
                     axis.text = element_text(size = 14),
                     axis.title = element_text(size = 14),
                     legend.title = element_text(size = 14),
-                    legend.text = element_text(size = 12))
+                    legend.text = element_text(size = 14))
 
 
 ## adapted from phyloseq
