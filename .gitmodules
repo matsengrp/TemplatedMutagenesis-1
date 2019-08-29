@@ -3,4 +3,4 @@
 	url = git://github.com/psathyrella/partis
 [submodule "PyMotifFinder"]
 	path = PyMotifFinder
-	url = git@github.com:matsengrp/PyMotifFinder.git
+	url = git://github.com/matsengrp/PyMotifFinder
