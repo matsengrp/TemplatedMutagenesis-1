@@ -1,6 +1,6 @@
-# gcgcgc
+# Templated Mutagenesis 1
 
-![Docker Build](https://img.shields.io/docker/build/jfukuyama/gcgcgc.svg)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/matsengrp/templatedmutagenesis1.svg)](https://hub.docker.com/r/matsengrp/templatedmutagenesis1)
 
 This repo contains all of the code required to reproduce all the figures and tables in the conversion paper.
 

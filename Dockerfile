@@ -1,4 +1,4 @@
-FROM continuumio/anaconda
+FROM continuumio/anaconda:5.2.0
 
 RUN apt-get update && apt-get install -y \
   build-essential \
@@ -8,7 +8,6 @@ RUN apt-get update && apt-get install -y \
   libxt6 \
   libz-dev
 
-RUN conda update -y conda
 RUN conda install -y python=2.7
 RUN conda install -y biopython pandas psutil scons seaborn zlib
 RUN conda install -y -c bioconda pysam
