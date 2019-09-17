@@ -9,7 +9,7 @@ library(ggplot2)
 library(dplyr)
 library(magrittr)
 library(lme4)
-library(broom)
+library(broom.mixed)
 library(cowplot)
 source("analysis/plotting_extras.R")
 parser = ArgumentParser()
@@ -37,16 +37,16 @@ for(i in 1:nrow(cis)) {
     kp = cis[i,2]
     t = tryCatch({
         out.lmer = lmer(prob ~ 1 + (1 | source/query_name), data = subset(probs, reference == ref & k == kp))
-        cis$estimates[i] = tidy(out.lmer)[1,2]
-        cis$ses[i] = tidy(out.lmer)[1,3]
+        cis$estimates[i] = tidy(out.lmer)[1,"estimate",drop=TRUE]
+        cis$ses[i] = tidy(out.lmer)[1,"std.error",drop=TRUE]
     }, error = function(err) {
         return("try-error")
     })
     # for the mouse v genes with k = 14 there isn't enough data to fit the model above, so we do a smaler one
     if(t == "try-error") {
         out.lmer = lmer(prob ~ 1 + (1 | source), data = subset(probs, reference == ref & k == kp))
-        cis$estimates[i] = tidy(out.lmer)[1,2]
-        cis$ses[i] = tidy(out.lmer)[1,3]
+        cis$estimates[i] = tidy(out.lmer)[1,"estimate",drop=TRUE]
+        cis$ses[i] = tidy(out.lmer)[1,"std.error",drop=TRUE]
     }
 }
 
@@ -65,7 +65,7 @@ ggplot(grouped) +
     geom_point(aes(x = k, y = estimates, color = reference),
                data = cis, position = position_dodge(width=.4), size = 2.4) +
     geom_errorbar(aes(x = k, ymin = estimates - 2 * ses, ymax = estimates + 2 * ses, color = reference),
-                  data = cis, width = .1, position = position_dodge(width=.4), width=.3)
+                  data = cis, position = position_dodge(width=.4), width=.3)
 dev.off()
 
 ## tests
@@ -75,14 +75,14 @@ probs_merged$gpt_minus_v = probs_merged$prob.x - probs_merged$prob.y
 stats = list()
 for(kp in unique(probs_merged$k)) {
     t = tryCatch({
-        stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source/query_name), data = subset(probs_merged, k == kp)))[1, "statistic"]
+        stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source/query_name), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
     }, error = function(err) {
         return("try-error")
     })
     if(t == "try-error") {
-        stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source), data = subset(probs_merged, k == kp)))[1, "statistic"]
+        stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
     }
 }
 ## p-values comparing average probability due to gene conversion from the two reference sets for k in 8 to 14
 print("p-values for confidence gpt vs. v comparison")
-print(sapply(stats[8:14], function(s) pt(s, df = 11, lower.tail = TRUE) * 2))
+print(sapply(stats[8:14], function(s) pt(abs(s), df = 11, lower.tail = FALSE) * 2))
