@@ -137,25 +137,6 @@ env.Command(
     'Rscript analysis/make_rate_table.R --input-csv $SOURCES --output-tex $TARGETS --rc True'
 )
 
-# rate plots with rc
-env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_rc.pdf')],
-    fpr_gpt_vs_gpt,
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
-)
-
-env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt_v_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v_rc.pdf')],
-    fpr_gpt_vs_v[0],
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
-)
-
-env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v_rc.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_imgt_v_rc.pdf')],
-    fpr_gpt_vs_imgt_v[0],
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]} --rc True'
-)
-
 # plot for probability of mutation given gene conversion
 env.Command(
     os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
