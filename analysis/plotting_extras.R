@@ -1,6 +1,7 @@
 library(ggplot2)
 reference_name_map = list()
 reference_name_map[["mus_musculus_129S1_v_genes"]] = "Mouse V Genes"
+reference_name_map[["imgt_ighv_mouse"]] = "All IMGT Mouse V Genes"
 reference_name_map[["gpt_132"]] = "gpt Genes"
 tissue_types = read.csv("analysis/tissue_annotations.csv")
 rownames(tissue_types) = tissue_types$name

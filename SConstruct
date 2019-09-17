@@ -109,24 +109,20 @@ env.Command(
     'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --rc True'
 )
 
-# make plots of the false positive rate for mf and pmf
+# make combined plot for the templated mutagenesis fraction for gpt with gpt templates vs gpt with V gene templates
 env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt.pdf')],
-    fpr_gpt_vs_gpt,
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
+    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt.pdf'),
+    [fpr_gpt_vs_gpt, fpr_gpt_vs_v],
+    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGETS'
 )
 
+# same as above with reverse complements included
 env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_v.pdf')],
-    fpr_gpt_vs_v[0],
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
+    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt_rc.pdf'),
+    [fpr_gpt_vs_gpt, fpr_gpt_vs_v],
+    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGETS --rc True'
 )
 
-env.Command(
-    [os.path.join(OUTPUT_DIR, 'fpr_gpt_imgt_v.pdf'), os.path.join(OUTPUT_DIR, 'fpr_poly_gpt_imgt_v.pdf')],
-    fpr_gpt_vs_imgt_v[0],
-    'Rscript analysis/make_rate_plot.R --input $SOURCES --output-mf ${TARGETS[0]} --output-pmf ${TARGETS[1]}'
-)
 
 # tables with mf/polymf rates
 env.Command(
