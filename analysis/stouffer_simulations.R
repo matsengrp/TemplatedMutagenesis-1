@@ -1,5 +1,10 @@
 library(ggplot2)
 library(gridExtra)
+library(argparse)
+parser = ArgumentParser()
+parser$add_argument("--beta-output", dest = "beta_output")
+parser$add_argument("--distribution-output", dest = "distribution_output")
+args = parser$parse_args()
 stouffer = function(b1, b2, epsilon, n) {
     zvals = replicate(n = n, {
         obs = rbeta(n = 1, shape1 = b1 + epsilon, shape2 = b2)
@@ -23,14 +28,14 @@ z_plot = qplot(zs, geom = "histogram") + xlab("z-value") +
 p_plot = qplot(ps, geom = "histogram") +
     scale_x_log10("p-value") + ggtitle("Distribution of p-values from\nStouffer's Z with n = 2000")
 
-pdf("stouffer_distributions.pdf", width=6,height=2.5)
+pdf(args$distribution_output, width=6,height=2.5)
 grid.arrange(z_plot, p_plot, ncol = 2)
 dev.off()
 xgrid = seq(0,1,length.out=1000)
 beta_df = data.frame(density = c(dbeta(xgrid, b1, b2), dbeta(xgrid, b1 + epsilon, b2)),
                      x = c(xgrid, xgrid),
                      distribution = rep(c("null", "true"), each = length(xgrid)))
-pdf("two_betas.pdf",width=4,height=2.25)
+pdf(args$beta_output,width=4,height=2.25)
 ggplot(beta_df) +
     geom_line(aes(x = x, y = density, linetype = distribution)) +
     xlab("") +
