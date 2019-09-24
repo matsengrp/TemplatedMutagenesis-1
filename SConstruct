@@ -158,13 +158,6 @@ env.Command(
     'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
 )
 
-# make phylogenetic tree plots
-env.Command(
-    os.path.join(OUTPUT_DIR, 'gene_tree_plots.pdf'),
-    [],
-    'Rscript analysis/tree_plots.R --tree-output $TARGET'
-)
-
 # make the stouffer plots
 stouffer = env.Command(
     [os.path.join(OUTPUT_DIR, 'two_betas.pdf'), os.path.join(OUTPUT_DIR, 'stouffer_distributions.pdf')],
