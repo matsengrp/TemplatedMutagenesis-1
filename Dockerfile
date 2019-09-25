@@ -21,7 +21,7 @@ RUN ./bin/build.sh
 RUN conda install -y r-essentials \
     && unset R_LIBS_SITE \
     && R --vanilla --slave -e \
-    'install.packages(c("argparse", "cowplot", "lme4", "gridExtra"), \
+    'install.packages(c("argparse", "broom.mixed", "cowplot", "lme4", "gridExtra"), \
     repos="http://cran.rstudio.com/")'
 WORKDIR /templatedmutagenesis1/PyMotifFinder
 RUN pip install .
