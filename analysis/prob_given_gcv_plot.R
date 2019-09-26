@@ -41,14 +41,20 @@ for(i in 1:nrow(cis)) {
         cis$ses[i] = tidy(out.lmer)[1,"std.error",drop=TRUE]
     }, error = function(err) {
         return("try-error")
-    })
-    # for the mouse v genes with k = 14 there isn't enough data to fit the model above, so we do a smaler one
-    if(t == "try-error") {
+    }, warning = function(warn) {
+        return("warning")
+    }
+    )
+    # for the mouse v genes with k = 14 there isn't enough data to fit the model above, so we do a smaller one
+    if(t == "try-error" || t == "warning") {
         out.lmer = lmer(prob ~ 1 + (1 | source), data = subset(probs, reference == ref & k == kp))
         cis$estimates[i] = tidy(out.lmer)[1,"estimate",drop=TRUE]
         cis$ses[i] = tidy(out.lmer)[1,"std.error",drop=TRUE]
     }
 }
+
+## for SRR2229716_annotations.csv there are no alignments to V genes of length 13 or 14, so we remove them before plotting
+grouped = grouped[complete.cases(grouped),]
 
 pdf(args$output, width=7.5, height=3.5)
 ggplot(grouped) +
@@ -78,8 +84,12 @@ for(kp in unique(probs_merged$k)) {
         stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source/query_name), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
     }, error = function(err) {
         return("try-error")
+    }, warning = function(warn) {
+        return("warning")
+    }, message = function(message) {
+        return("warning")
     })
-    if(t == "try-error") {
+    if(t == "try-error" || t == "warning") {
         stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
     }
 }
