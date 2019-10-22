@@ -16,6 +16,7 @@ parser$add_argument("--input-1", dest = "input_1")
 parser$add_argument("--input-2", dest = "input_2")
 parser$add_argument("--output-file", dest = "output_file")
 parser$add_argument("--rc", dest = "rc", default = "False")
+parser$add_argument("--dale-method", dest = "dale_method", default = "False")
 args = parser$parse_args()
 
 fpr_1 = read.csv(args$input_1)[,c("hit_fraction", "input_file", "reference", "k",
@@ -25,7 +26,7 @@ fpr_2 = read.csv(args$input_2)[,c("hit_fraction", "input_file", "reference", "k"
 fpr = rbind(fpr_1, fpr_2)
 # tissue_types was loaded in with the source("analysis/plotting_extras.R") command
 fpr$tissue_type = tissue_types[fpr$input_file,]$tissue
-fpr = subset(fpr, dale_method == "False")
+fpr = subset(fpr, dale_method == args$dale_method)
 # make the confidence intervals
 cis = fpr %>%
     group_by_at(c("k", "reference", "reverse_complement", "type")) %>%

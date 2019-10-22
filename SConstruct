@@ -22,6 +22,11 @@ partis_ebola = env.Command(
     [os.path.join(DATA_DIR, 'ebola/ebola_sequences_heavy.fasta'), PARTIS],
     'python analysis/run_partis_ebola.py --input-file ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
 
+partis_vb18 = env.Command(
+    os.path.join(OUTPUT_DIR, 'partis/partis_output_vb18'),
+    [os.path.join(DATA_DIR, 'yeap/presto_output'), PARTIS],
+    'python analysis/run_partis_vb18.py --input-directory ${SOURCES[0]} --partis ${SOURCES[1]} --output-directory $TARGET')
+
 # compute the false positive rate for motif finder and poly motif
 # finder on the gpt sequences vs. gpt reference set
 pmf_rate_gpt_vs_gpt = env.Command(
@@ -50,6 +55,14 @@ pmf_rate_ebola = env.Command(
     [partis_ebola,
      os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
     'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET')
+
+# compute the pmf rate for the vb18 sequences vs the 129S1 v reference set
+pmf_rate_vb18 = env.Command(
+    os.path.join(OUTPUT_DIR, 'pmf_rate_vb18.csv'),
+    [partis_vb18,
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET'
+)
 
 # compute the probability of each mutation given gene conversion on the gpt data
 prob_given_gcv_gpt = env.Command(
@@ -99,15 +112,42 @@ per_base_prob_gpt_v = env.Command(
 env.Command(
     [os.path.join(OUTPUT_DIR, 'ebola_bound.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound.csv')],
     [pmf_rate_ebola, pmf_rate_gpt_vs_gpt],
-    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]}'
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]}'
 )
 
 # compute the bound on the rate of gene conversion on the ebola data using reverse complements
 env.Command(
     [os.path.join(OUTPUT_DIR, 'ebola_bound_rc.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound_rc.csv')],
     [pmf_rate_ebola, pmf_rate_gpt_vs_gpt],
-    'Rscript analysis/compute_bound.R --ebola-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --rc True'
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --rc True'
 )
+
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'ebola_bound_dale.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound_dale.csv')],
+    [pmf_rate_ebola, pmf_rate_gpt_vs_gpt],
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --dale True'
+)
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'ebola_bound_dale_rc.tex'), os.path.join(OUTPUT_DIR, 'ebola_bound_dale_rc.csv')],
+    [pmf_rate_ebola, pmf_rate_gpt_vs_gpt],
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --dale True --rc True'
+)
+
+
+# compute the bound on the rate of gene conversion on the vb18 data
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'vb18_bound_dale.tex'), os.path.join(OUTPUT_DIR, 'vb18_bound_dale.csv')],
+    [pmf_rate_vb18, pmf_rate_gpt_vs_gpt],
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --dale True'
+)
+
+# compute the bound on the rate of gene conversion on the vb18 data with reverse complements
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'vb18_bound_dale_rc.tex'), os.path.join(OUTPUT_DIR, 'vb18_bound_dale_rc.csv')],
+    [pmf_rate_vb18, pmf_rate_gpt_vs_gpt],
+    'Rscript analysis/compute_bound.R --naive-rate ${SOURCES[0]} --gpt-fpr ${SOURCES[1]} --output-tex ${TARGETS[0]} --output-csv ${TARGETS[1]} --dale True --rc True'
+)
+
 
 # make combined plot for the templated mutagenesis fraction for gpt with gpt templates vs gpt with V gene templates
 env.Command(
@@ -121,6 +161,12 @@ env.Command(
     os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt_rc.pdf'),
     [pmf_rate_gpt_vs_gpt, pmf_rate_gpt_vs_v],
     'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGETS --rc True'
+)
+
+env.Command(
+    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt_dale.pdf'),
+    [pmf_rate_gpt_vs_gpt, pmf_rate_gpt_vs_v],
+    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGETS --dale-method True'
 )
 
 
@@ -164,4 +210,4 @@ stouffer = env.Command(
     [],
     'Rscript analysis/stouffer_simulations.R --beta-output ${TARGETS[0]} --distribution-output ${TARGETS[1]}'
 )
-env.AlwaysBuild(stouffer)
+
