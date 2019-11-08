@@ -61,7 +61,7 @@ ggplot(grouped) +
     geom_point(aes(x = k, y = avgprob, color = reference, shape = tissue_type),
                 size = 1, alpha = .6, position = position_dodge(width=.4)) +
     xlab("Minimum Donor Tract Size") +
-    ylab("Average Probability of\nMutation Given GCV\n") +
+    ylab("Average Probability of\nMutation Given TM\n") +
     ylim(c(0, max(grouped$avgprob))) +
     scale_color_discrete(breaks = names(reference_name_map), labels = reference_name_map) +
     scale_shape_manual(values = c(24, 25)) +

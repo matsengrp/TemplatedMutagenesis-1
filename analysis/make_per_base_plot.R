@@ -56,7 +56,7 @@ ggplot(subset(full, reference == "gpt_132" & k == 8), aes(x = probability, y = o
     geom_jitter(alpha = .1, size = 1, width = .02, height = 0, pch = "l") +
     facet_grid(germline ~ target) +
     stat_smooth(method = "lm", se = FALSE) +
-    xlab("Probability of Mutation Under GCV Model") +
+    xlab("Probability of Mutation Under TM Model") +
     ylab("Mutation Observed") +
     ggtitle("gpt reference, k = 8")
 
@@ -64,7 +64,7 @@ ggplot(subset(full, reference == "mus_musculus_129S1_v_genes" & k == 8), aes(x =
     geom_jitter(alpha = .1, size = 1, width = .02, height = 0, pch = "l") +
     facet_grid(germline ~ target) +
     stat_smooth(method = "lm", se = FALSE) +
-    xlab("Probability of Mutation Under GCV Model") +
+    xlab("Probability of Mutation Under TM Model") +
     ylab("Mutation Observed") +
     ggtitle("Mouse reference, k = 8")
 dev.off()
