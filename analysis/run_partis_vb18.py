@@ -23,10 +23,10 @@ input_directory = args.input_directory
 output_directory = args.output_directory
 partis = args.partis
 
-# t is the Sra Run table
+# Where the dataset numbers come from:
+# t is the Sra Run table, data/yeap/SraRunTable.txt
 # subset(t, genotype_s == "VB18 passenger mice" & allele_s == "Passenger" & tissue_s %in% c("PP GC B cells", "Splenic GC B cells") & immunization_s == "NP-CGG")
 
-## TODO: change
 # the VB18 passenger datasets
 DATASETS = [
     'SRR2229682',
@@ -83,6 +83,6 @@ def annotate(dataset, outdir):
 
 
 for dataset in DATASETS:
-    # run partis on against the gpt germline gene set
+    # run partis against the mouse germline gene set
     convert_to_fasta(dataset)
     annotate(dataset, output_directory)
