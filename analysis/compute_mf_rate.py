@@ -1,4 +1,3 @@
-from pymotiffinder.motif_finder import motif_finder
 from pymotiffinder.motif_finder import poly_motif_finder
 from pymotiffinder.motif_finder import make_kmer_dict_from_fasta
 import os
@@ -33,8 +32,8 @@ def make_row(hits, k, input_file, reference, type, reverse_complement, dale_meth
 
 k_list = range(args.kmin, args.kmax + 1)
 row_list = []
-for rc in [True, False]:
-    for dale_method in [True, False]:
+for rc in [False, True]:
+    for dale_method in [True]:
         for k in k_list:
             kmer_dict = make_kmer_dict_from_fasta(args.reference_fasta,
                                                       k=k, reverse_complement=rc)

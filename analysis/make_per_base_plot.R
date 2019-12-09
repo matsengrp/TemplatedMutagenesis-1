@@ -52,7 +52,7 @@ colnames(expectedm)[5:6] = c("target", "probability")
 full = merge(observedm, expectedm, by = c("id", "germline", "target", "reference", "k"))
 
 pdf(args$output, width = 8, height = 5)
-ggplot(subset(full, reference == "gpt_132" & k == 8), aes(x = probability, y = observed)) +
+ggplot(subset(full, reference == "gpt_mock_from_mouse" & k == 8), aes(x = probability, y = observed)) +
     geom_jitter(alpha = .1, size = 1, width = .02, height = 0, pch = "l") +
     facet_grid(germline ~ target) +
     stat_smooth(method = "lm", se = FALSE) +
