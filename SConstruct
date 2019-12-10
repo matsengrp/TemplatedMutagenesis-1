@@ -182,3 +182,10 @@ env.Command(
     [per_base_gpt_gpt_mock_from_mouse, per_base_gpt_129S1],
     'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
 )
+
+# Figure 4: Plot with two betas and distribution of values from Stouffer simulation
+env.Command(
+    [os.path.join(OUTPUT_DIR, 'two_betas.pdf'), os.path.join(OUTPUT_DIR, 'stouffer_distributions.pdf')],
+    [],
+    'Rscript analysis/stouffer_simulations.R --beta-output ${TARGETS[0]} --distribution-output ${TARGETS[1]}'
+)
