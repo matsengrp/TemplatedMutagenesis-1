@@ -29,6 +29,8 @@ out = merge(naive[,c("k", "hit_fraction")],
 get_bound = function(naive, fpr, tpr) {
     bound = 1 - (tpr - naive) / (tpr - fpr)
     bound = ifelse(bound < 0, 0, bound)
+    ## If FPR > TPR, we can't make the bound
+    bound = ifelse(fpr > tpr, NA, bound)
 }
 out$bound = get_bound(naive = out$hit_fraction_naive,
                       fpr = out$hit_fraction_gpt, tpr = 1)
