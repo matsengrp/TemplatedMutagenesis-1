@@ -17,8 +17,8 @@ If you wish can also build it yourself via
 
 The following commands will reproduce the figures in the paper, placing them in an `output` directory:
 
-    wget https://zenodo.org/record/3387207/files/templated-mutagenesis-data.tar.gz
-    tar xzf templated-mutagenesis-data.tar.gz
+    wget https://zenodo.org/record/3572361/files/templated-mutagenesis-data-v2.tar.gz
+    tar xzf templated-mutagenesis-data-v2.tar.gz
     mkdir output
     docker run --mount src=${PWD}/data,target=/templatedmutagenesis1/data,type=bind,readonly=true \
         --mount src=${PWD}/output,target=/templatedmutagenesis1/output,type=bind \
