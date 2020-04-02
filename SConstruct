@@ -2,7 +2,11 @@
 # -*- python -*-
 
 import os
-env = Environment(ENV = os.environ)
+
+vars = Variables(None, ARGUMENTS)
+vars.Add(BoolVariable('MAKE_PLOTS', 'Flag for whether or not the plotting code should be run. This should be false when running the supplementary analysis.', 'true'))
+env = Environment(ENV = os.environ, variables=vars)
+
 DATA_DIR = 'data'
 OUTPUT_DIR = 'output'
 PARTIS = 'partis/bin/partis'
@@ -146,46 +150,48 @@ per_base_gpt_129S1 = env.Command(
     'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --reference ${SOURCES[1]}'
 )
 
-## Plots ##
+if env['MAKE_PLOTS']:
 
-# Figure 1: Plot of fraction of mutations in the gpt gene explainable by TM from the mock gpt set or the mouse IMGT V set
-env.Command(
-    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt.pdf'),
-    [pmf_rate_gpt_vs_mouse_mock, pmf_rate_gpt_vs_mouse_imgt_v],
-    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET --dale-method True'
-)
+	## Plots ##
 
-# Figure 1 supplement version: Plot of fraction of mutations in the gpt gene explainable by TM from the mock gpt set or the mouse IMGT V set with reverse complements included in both
-env.Command(
-    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt_rc.pdf'),
-    [pmf_rate_gpt_vs_mouse_mock, pmf_rate_gpt_vs_mouse_imgt_v],
-    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET --dale-method True --rc True'
-)
-
-# Figure 2: Average probability of the observed mutations under a TM model, either from the gpt set or from the muose 129S1 set
-env.Command(
-    os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
-    [prob_given_tm_from_gpt, prob_given_tm_from_v],
-    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
-)
-
-# Figure 2 supplemental version: Average probability of the observed mutations under a TM model, either from the gpt set or from the mouse 129S1 set with reverse complements included in both
-env.Command(
-    os.path.join(OUTPUT_DIR, 'prob_given_gcv_rc.pdf'),
-    [prob_given_tm_from_gpt_rc, prob_given_tm_from_v_rc],
-    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
-)
-
-# Figure 3: Plot describing the per base observed vs. expected probabilities
-env.Command(
-    os.path.join(OUTPUT_DIR, 'per_base_obs_vs_exp.pdf'),
-    [per_base_gpt_gpt_mock_from_mouse, per_base_gpt_129S1],
-    'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
-)
-
-# Figure 4: Plot with two betas and distribution of values from Stouffer simulation
-env.Command(
-    [os.path.join(OUTPUT_DIR, 'two_betas.pdf'), os.path.join(OUTPUT_DIR, 'stouffer_distributions.pdf')],
-    [],
-    'Rscript analysis/stouffer_simulations.R --beta-output ${TARGETS[0]} --distribution-output ${TARGETS[1]}'
-)
+	# Figure 1: Plot of fraction of mutations in the gpt gene explainable by TM from the mock gpt set or the mouse IMGT V set
+	env.Command(
+	    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt.pdf'),
+	    [pmf_rate_gpt_vs_mouse_mock, pmf_rate_gpt_vs_mouse_imgt_v],
+	    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET --dale-method True'
+	)
+	
+	# Figure 1 supplement version: Plot of fraction of mutations in the gpt gene explainable by TM from the mock gpt set or the mouse IMGT V set with reverse complements included in both
+	env.Command(
+	    os.path.join(OUTPUT_DIR, 'gpt_v_vs_gpt_rc.pdf'),
+	    [pmf_rate_gpt_vs_mouse_mock, pmf_rate_gpt_vs_mouse_imgt_v],
+	    'Rscript analysis/make_combined_rate_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET --dale-method True --rc True'
+	)
+	
+	# Figure 2: Average probability of the observed mutations under a TM model, either from the gpt set or from the muose 129S1 set
+	env.Command(
+	    os.path.join(OUTPUT_DIR, 'prob_given_gcv.pdf'),
+	    [prob_given_tm_from_gpt, prob_given_tm_from_v],
+	    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+	)
+	
+	# Figure 2 supplemental version: Average probability of the observed mutations under a TM model, either from the gpt set or from the mouse 129S1 set with reverse complements included in both
+	env.Command(
+	    os.path.join(OUTPUT_DIR, 'prob_given_gcv_rc.pdf'),
+	    [prob_given_tm_from_gpt_rc, prob_given_tm_from_v_rc],
+	    'Rscript analysis/prob_given_gcv_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+	)
+	
+	# Figure 3: Plot describing the per base observed vs. expected probabilities
+	env.Command(
+	    os.path.join(OUTPUT_DIR, 'per_base_obs_vs_exp.pdf'),
+	    [per_base_gpt_gpt_mock_from_mouse, per_base_gpt_129S1],
+	    'Rscript analysis/make_per_base_plot.R --input-1 ${SOURCES[0]} --input-2 ${SOURCES[1]} --output $TARGET'
+	)
+	
+	# Figure 4: Plot with two betas and distribution of values from Stouffer simulation
+	env.Command(
+	    [os.path.join(OUTPUT_DIR, 'two_betas.pdf'), os.path.join(OUTPUT_DIR, 'stouffer_distributions.pdf')],
+	    [],
+	    'Rscript analysis/stouffer_simulations.R --beta-output ${TARGETS[0]} --distribution-output ${TARGETS[1]}'
+		)
