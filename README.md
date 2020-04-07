@@ -27,7 +27,7 @@ The following commands will reproduce the figures in the paper, placing them in 
 
 The analysis takes several hours to complete.
 
-### Supplementary analysis
+## Supplementary analysis
 To run the analysis discussed in section "Consistent results using filtered donor gene sets" of the paper, you will need to install several python and R packages as laid out in the "Scripts" section of `data/reference_sets/README.md`.
 Then, run the following commands which make use of the same `data` folder obtained from the first two steps in the Main analysis above.
 
