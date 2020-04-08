@@ -17,6 +17,7 @@ RUN pip install seqmagick==0.6.2
 
 COPY . /templatedmutagenesis1
 WORKDIR /templatedmutagenesis1/partis
+RUN git submodule update --init
 RUN ./bin/build.sh
 RUN conda install -y r-essentials \
     && unset R_LIBS_SITE \

@@ -5,10 +5,12 @@ import os
 
 vars = Variables(None, ARGUMENTS)
 vars.Add(BoolVariable('MAKE_PLOTS', 'Flag for whether or not the plotting code should be run. This should be false when running the supplementary analysis.', 'true'))
+vars.Add('OUTPUT_DIR', 'Name of directory in which to output the analysis results', 'output')
+
 env = Environment(ENV = os.environ, variables=vars)
 
+OUTPUT_DIR = env['OUTPUT_DIR']
 DATA_DIR = 'data'
-OUTPUT_DIR = 'output'
 PARTIS = 'partis/bin/partis'
 if not os.path.exists(OUTPUT_DIR):
     os.mkdir(OUTPUT_DIR)
