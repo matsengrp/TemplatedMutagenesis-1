@@ -1,8 +1,9 @@
 # Templated Mutagenesis 1
 
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/matsengrp/templatedmutagenesis1.svg)](https://hub.docker.com/r/matsengrp/templatedmutagenesis1)
+[![Docker Repository on Quay](https://quay.io/repository/matsengrp/templatedmutagenesis1/status "Docker Repository on Quay")](https://quay.io/repository/matsengrp/templatedmutagenesis1)
 
-This repo contains all of the code required to reproduce all the figures and tables in the conversion paper.
+This repository contains all of the code required to reproduce the figures and tables in the paper _Lack of evidence for a substantial rate of templated mutagenesis in B cell diversification_ by Julia Fukuyama, Branden J Olson, and Frederick A Matsen IV.
+
 
 ## How to use it
 
