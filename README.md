@@ -7,16 +7,18 @@ This repository contains all of the code required to reproduce the figures and t
 
 ## How to use it
 
-A Docker image containing partis, PyMotifFinder, their dependencies, and the R packages required to run the analysis scripts is available on Docker Hub, and can be obtained by running
+A Docker image containing partis, PyMotifFinder, their dependencies, and the R packages required to run the analysis scripts is available on Quay, and can be obtained by running
 
-    docker pull matsengrp/templatedmutagenesis1
+    docker pull quay.io/matsengrp/templatedmutagenesis1
 
 That docker image is built automatically from this repository.
 If you wish can also build it yourself via
 
     docker build -t matsengrp/templatedmutagenesis1 .
 
+
 ## Main analysis
+
 The following commands will reproduce the figures in the paper, placing them in an `output` directory:
 
     wget https://zenodo.org/record/3741809/files/templated-mutagenesis-data-v3.tar.gz
@@ -28,7 +30,9 @@ The following commands will reproduce the figures in the paper, placing them in 
 
 The analysis takes several hours to complete.
 
+
 ## Supplementary analysis
+
 To run the analysis discussed in section "Consistent results using filtered donor gene sets" of the paper, you will need to install several python and R packages as laid out in the "Scripts" section of `data/reference_sets/README.md`.
 Then, run the following commands which make use of the same `data` folder obtained from the first two steps in the Main analysis above.
 
