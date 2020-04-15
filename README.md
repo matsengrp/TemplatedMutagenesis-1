@@ -7,9 +7,10 @@ This repository contains all of the code required to reproduce the figures and t
 
 ## How to use it
 
-A Docker image containing partis, PyMotifFinder, their dependencies, and the R packages required to run the analysis scripts is available on Quay, and can be obtained by running
+A Docker image containing partis, PyMotifFinder, their dependencies, and the R packages required to run the analysis scripts is available on Quay, and can be obtained by running the following commands:
 
     docker pull quay.io/matsengrp/templatedmutagenesis1
+    docker tag quay.io/matsengrp/templatedmutagenesis1 matsengrp/templatedmutagenesis1
 
 That docker image is built automatically from this repository.
 If you wish can also build it yourself via
