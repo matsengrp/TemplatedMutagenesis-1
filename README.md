@@ -31,5 +31,4 @@ The following commands will reproduce the figures in the paper, placing them in 
 
 The analysis takes several hours to complete.
 
-# [Supplementary analysis and results](docs/supplement.md)
-
+Instructions for running the supplementary analysis as well as results can be found [here](docs/supplement.md).
