@@ -26,7 +26,7 @@ In all of the following tables, _k_ denotes tract length, PyPolyMF rate is the n
 
 ### Mice
 
-Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads _included in_ the donor set:
+Repository Table 1: Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads _included in_ the donor set:
 
 | _k_ | PyPMF rate | PyPMF FPR | UB (1) | UB (.99) | UB (.95) | UB (.9)|
 |---|------------|-----------|--------|----------|----------|--------|
@@ -38,7 +38,7 @@ Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads
 |13|0.07|0.07|0|0|0|0|
 |14|0.06|0.05|0.01|0.01|0.01|0.01|
  
-Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads _excluded from_ the donor set:
+Repository Table 2: Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads _excluded from_ the donor set:
 
 | _k_ | PyPMF rate | PyPMF FPR | UB (1) | UB (.99) | UB (.95) | UB (.9)|
 |---|------------|-----------|--------|----------|----------|--------|
@@ -52,7 +52,7 @@ Bounds for mice, with open reading frame (ORF) and pseudogene (P) sequence reads
 
 ### Humans
 
-Bounds for humans, with open reading frame (ORF) and pseudogene (P) sequence reads _included in_ the donor set:
+Repository Table 3: Bounds for humans, with open reading frame (ORF) and pseudogene (P) sequence reads _included in_ the donor set:
 
 | _k_ | PyPMF rate | PyPMF FPR | UB (1) | UB (.99) | UB (.95) | UB (.9)|
 |---|------------|-----------|--------|----------|----------|--------|
@@ -65,7 +65,7 @@ Bounds for humans, with open reading frame (ORF) and pseudogene (P) sequence rea
 |14|0.13|0.03|0.1|0.11|0.11|0.12|
  
  
-Bounds for humans, with open reading frame (ORF) and pseudogene (P) sequence reads _excluded from_ the donor set:
+Repository Table 4: Bounds for humans, with open reading frame (ORF) and pseudogene (P) sequence reads _excluded from_ the donor set:
 
 | _k_ | PyPMF rate | PyPMF FPR | UB (1) | UB (.99) | UB (.95) | UB (.9)|
 |---|------------|-----------|--------|----------|----------|--------|
