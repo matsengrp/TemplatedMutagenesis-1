@@ -2,7 +2,7 @@
 
 [![Docker Repository on Quay](https://quay.io/repository/matsengrp/templatedmutagenesis1/status "Docker Repository on Quay")](https://quay.io/repository/matsengrp/templatedmutagenesis1)
 
-This repository contains all of the code required to reproduce the figures and tables in the paper _Lack of evidence for a substantial rate of templated mutagenesis in B cell diversification_ by Julia Fukuyama, Branden J Olson, and Frederick A Matsen IV.
+This repository contains all of the code required to reproduce the figures and tables in the paper [_Lack of evidence for a substantial rate of templated mutagenesis in B cell diversification_](http://dx.doi.org/10.4049/jimmunol.2000092) by Julia Fukuyama, Branden J Olson, and Frederick A Matsen IV.
 
 
 ## How to use it
