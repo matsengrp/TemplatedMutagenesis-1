@@ -65,16 +65,19 @@ pmf_rate_gpt_vs_mouse_imgt_v = env.Command(
 pmf_rate_gpt_vs_human_mock = env.Command(
     os.path.join(OUTPUT_DIR, 'pmf_rate_gpt_vs_human_mock.csv'),
     [partis_gpt,
-     os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_human.fasta')],
-    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET'
+     os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_human.fasta'),
+     os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_human.fasta')],
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --reference-to-drop-kmers ${SOURCES[2]} --output-csv $TARGET'
 )
 
 # Compute the PolyMF rate on the gpt sequences with the mock gpt set based on the mouse V genes
 pmf_rate_gpt_vs_mouse_mock = env.Command(
     os.path.join(OUTPUT_DIR, 'pmf_rate_gpt_vs_mouse_mock.csv'),
     [partis_gpt,
-     os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta')],
-    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --output-csv $TARGET'
+     os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta'),
+##     os.path.join(OUTPUT_DIR, 'gpt_mock_from_mouse_imgt_trimmed.fasta'),
+     os.path.join(DATA_DIR, 'reference_sets/imgt_ighv_mouse.fasta')],
+    'python analysis/compute_mf_rate.py --input-directory ${SOURCES[0]} --reference-fasta ${SOURCES[1]} --reference-to-drop-kmers ${SOURCES[2]} --output-csv $TARGET'
 )
 
 ## Bounds on the rate of templated mutagenesis ##
@@ -112,11 +115,12 @@ env.Command(
 # Probability of TM in the gpt sequences given TM from mock gpt set
 prob_given_tm_from_gpt = env.Command(
     os.path.join(OUTPUT_DIR, 'prob_given_tm_from_gpt.csv'),
-    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta')],
-    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta'),
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --reference-to-drop-kmers ${SOURCES[2]}'
 )
 
-# Probability of TM in the gpt sequences given TM from the 129S1 V gene set
+# # Probability of TM in the gpt sequences given TM from the 129S1 V gene set
 prob_given_tm_from_v = env.Command(
     os.path.join(OUTPUT_DIR, 'prob_given_tm_from_v.csv'),
     [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
@@ -126,8 +130,9 @@ prob_given_tm_from_v = env.Command(
 # Probability of TM in the gpt sequences given TM from mock gpt set with reverse complements included
 prob_given_tm_from_gpt_rc = env.Command(
     os.path.join(OUTPUT_DIR, 'prob_given_tm_from_gpt_rc.csv'),
-    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta')],
-    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --rc True'
+    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta'),
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python analysis/compute_probs.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --reference-to-drop-kmers ${SOURCES[2]} --rc True'
 )
 
 # Probability of TM in the gpt sequences given TM from the 129S1 V gene set with reverse complements included
@@ -141,15 +146,16 @@ prob_given_tm_from_v_rc = env.Command(
 # Per base probability of TM in the gpt sequences given TM from the gpt mock gene set based on mouse V genes
 per_base_gpt_gpt_mock_from_mouse = env.Command(
     os.path.join(OUTPUT_DIR, 'per_base_gpt_gpt_mock_from_mouse.csv'),
-    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta')],
-    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
+    [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/gpt_mock_from_mouse.fasta'),
+     os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]} --reference-to-drop-kmers ${SOURCES[2]}'
 )
 
 # Per base probability of TM in the gpt sequences given TM from the 129S1 V gene set
 per_base_gpt_129S1 = env.Command(
     os.path.join(OUTPUT_DIR, 'per_base_gpt_129S1.csv'),
     [partis_gpt, os.path.join(DATA_DIR, 'reference_sets/mus_musculus_129S1_v_genes.fasta')],
-    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --reference ${SOURCES[1]}'
+    'python analysis/compute_prob_per_base.py --input ${SOURCES[0]} --output $TARGET --references ${SOURCES[1]}'
 )
 
 if env['MAKE_PLOTS']:

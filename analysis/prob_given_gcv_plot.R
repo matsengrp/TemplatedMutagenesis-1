@@ -90,9 +90,11 @@ for(kp in unique(probs_merged$k)) {
         return("warning")
     })
     if(t == "try-error" || t == "warning") {
-        stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
+        try({
+            stats[[kp]] = tidy(lmer(gpt_minus_v ~ 1 + (1 | source), data = subset(probs_merged, k == kp)))[1, "statistic",drop=TRUE]
+        })
     }
 }
 ## p-values comparing average probability due to gene conversion from the two reference sets for k in 8 to 14
 print("p-values for confidence gpt vs. v comparison")
-print(sapply(stats[8:14], function(s) pt(abs(s), df = 11, lower.tail = FALSE) * 2))
+print(sapply(stats[8:length(stats)], function(s) pt(abs(s), df = 11, lower.tail = FALSE) * 2))
